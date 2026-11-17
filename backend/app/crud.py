@@ -13,33 +13,44 @@ MAX_INTENTOS_QUIZ: int = 3       # Intentos máximos por quiz antes de bloquear 
 INVITACION_EXPIRACION_DIAS: int = 7  # Días de validez de un enlace de invitación
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select, func, delete
+from sqlmodel import Session, delete, func, select
 
-from app.core.security import get_password_hash, verify_password
+from app.core.security import get_password_hash, hash_token, verify_password
 from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
-from app.models.contenido import (
-    Categoria, CategoriaCreate, CategoriaUpdate,
-    CursoEtiqueta,
-    Etiqueta, EtiquetaCreate, EtiquetaUpdate,
-    Curso, CursoCreate, CursoUpdate,
-    Modulo, ModuloCreate, ModuloUpdate,
-    Leccion, LeccionCreate, LeccionUpdate,
-    RecursoLeccion, RecursoLeccionCreate,
-)
 from app.models._enums import (
+    EstadoCalificacion,
     EstadoCurso,
     EstadoInscripcion,
-    EstadoCalificacion,
     EstadoLicencia,
+    EstadoPago,
     EstadoSolicitud,
     MarcaCurso,
     RolOrganizacion,
     RolUsuario,
     TipoCurso,
 )
-from app.models.inscripcion import Certificado, Inscripcion, ProgresoLeccion
 from app.models.calificacion import Calificacion, VotoResena
-from app.models.quiz import QuizIntento, QuizRespuesta
+from app.models.contenido import (
+    Categoria,
+    CategoriaCreate,
+    CategoriaUpdate,
+    Curso,
+    CursoCreate,
+    CursoEtiqueta,
+    CursoUpdate,
+    Etiqueta,
+    EtiquetaCreate,
+    EtiquetaUpdate,
+    Leccion,
+    LeccionCreate,
+    LeccionUpdate,
+    Modulo,
+    ModuloCreate,
+    ModuloUpdate,
+    RecursoLeccion,
+    RecursoLeccionCreate,
+)
+from app.models.inscripcion import Certificado, Inscripcion, ProgresoLeccion
 from app.models.invitacion import InvitacionCurso
 from app.models.organizacion import (
     ComentarioSolicitud,
@@ -49,13 +60,13 @@ from app.models.organizacion import (
     UsuarioOrganizacion,
 )
 from app.models.pago import Pago
+from app.models.quiz import QuizIntento, QuizRespuesta
 from app.models.sistema import (
     EventoAnalytics,
     EventoSistema,
     Notificacion,
     RefreshToken,
 )
-from app.models._enums import EstadoPago
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -726,6 +737,7 @@ def check_and_emit_certificate(
     # Generar PDF del certificado (no-fatal: el registro ya está guardado)
     try:
         from pathlib import Path
+
         from app.models._enums import MarcaCurso
         from app.services.certificado_pdf import generate_certificate_pdf
 
@@ -1192,7 +1204,9 @@ def get_or_create_user_by_email(
         # para que el llamador reenvíe el correo de activación.
         if user.estado == EstadoUsuario.PENDIENTE_ACTIVACION:
             token = secrets.token_urlsafe(32)
-            user.token_activacion = token
+            # Se guarda el HASH (activar_cuenta compara hash_token); el enlace
+            # del correo lleva el token en claro.
+            user.token_activacion = hash_token(token)
             user.token_activacion_expira = datetime.now(timezone.utc) + timedelta(hours=72)
             session.add(user)
             session.commit()
@@ -1211,7 +1225,7 @@ def get_or_create_user_by_email(
     new_user.estado = EstadoUsuario.PENDIENTE_ACTIVACION
 
     token = secrets.token_urlsafe(32)
-    new_user.token_activacion = token
+    new_user.token_activacion = hash_token(token)
     new_user.token_activacion_expira = datetime.now(timezone.utc) + timedelta(hours=72)
     session.add(new_user)
     session.commit()
@@ -1499,7 +1513,7 @@ def create_supervisor_pendiente(
         rol=RolUsuario.SUPERVISOR,
         estado=EstadoUsuario.PENDIENTE_ACTIVACION,
         is_active=False,
-        token_activacion=token,
+        token_activacion=hash_token(token),
         token_activacion_expira=datetime.now(timezone.utc) + timedelta(hours=72),
     )
     session.add(user)
@@ -1755,61 +1769,37 @@ def list_cursos_for_student(
 
 
 def get_org_stats(*, session: Session, org_id: uuid.UUID) -> dict:
-    """Retorna estadísticas básicas de una organización."""
-    user_ids = [
-        r.usuario_id for r in session.exec(
-            select(UsuarioOrganizacion).where(
-                UsuarioOrganizacion.organizacion_id == org_id
-            )
-        ).all()
+    """Estadísticas de una organización para el panel del supervisor.
+
+    Criterios (alineados con lo que ve el alumno y con el panel admin):
+    - usuarios = alumnos de la org (rol ESTUDIANTE); el supervisor no cuenta.
+    - inscripciones = vigentes (activa/finalizada) en cursos de la org.
+    - progreso = promedio del % de avance de cada inscripción vigente.
+    - cursos asignados = licencias vigentes sobre cursos publicados.
+    """
+    alumnos = [
+        u for (u, _r) in list_org_users(session=session, org_id=org_id)
+        if u.rol == RolUsuario.ESTUDIANTE
     ]
-    total_usuarios = len(user_ids)
-    if not user_ids:
+    cursos_disp = len(licencias_vigentes_org(session=session, org_id=org_id))
+    if not alumnos:
         return {
             "usuarios_totales": 0,
             "usuarios_activos": 0,
             "progreso_promedio": 0.0,
-            "cursos_disponibles": 0,
+            "cursos_disponibles": cursos_disp,
             "inscripciones_totales": 0,
         }
-
-    active_count = session.exec(
-        select(func.count()).select_from(User).where(
-            User.id.in_(user_ids),  # type: ignore[attr-defined]
-            User.is_active == True,  # noqa: E712
-        )
-    ).one()
-
-    inscripciones = list(session.exec(
-        select(Inscripcion).where(Inscripcion.usuario_id.in_(user_ids))  # type: ignore[attr-defined]
-    ).all())
-    total_insc = len(inscripciones)
-
-    # Progreso promedio: sobre ProgresoLeccion de los usuarios de la org.
-    insc_ids = [i.id for i in inscripciones]
-    if insc_ids:
-        progreso_vals = list(session.exec(
-            select(ProgresoLeccion.progreso_pct).where(
-                ProgresoLeccion.inscripcion_id.in_(insc_ids)  # type: ignore[attr-defined]
-            )
-        ).all())
-    else:
-        progreso_vals = []
-    progreso_prom = (sum(progreso_vals) / len(progreso_vals)) if progreso_vals else 0.0
-
-    cursos_disp = session.exec(
-        select(func.count()).select_from(LicenciaCurso).where(
-            LicenciaCurso.organizacion_id == org_id,
-            LicenciaCurso.estado == EstadoLicencia.ACTIVA,
-        )
-    ).one()
+    inscripciones = inscripciones_org(session=session, org_id=org_id)
+    avance = avance_por_inscripcion(session=session, inscripciones=inscripciones)
+    progreso_prom = (sum(avance.values()) / len(avance)) if avance else 0.0
 
     return {
-        "usuarios_totales": total_usuarios,
-        "usuarios_activos": int(active_count),
+        "usuarios_totales": len(alumnos),
+        "usuarios_activos": sum(1 for u in alumnos if u.is_active),
         "progreso_promedio": round(float(progreso_prom), 2),
-        "cursos_disponibles": int(cursos_disp),
-        "inscripciones_totales": total_insc,
+        "cursos_disponibles": cursos_disp,
+        "inscripciones_totales": len(inscripciones),
     }
 
 
@@ -2110,15 +2100,117 @@ def avance_en_cursos(
     rows = session.exec(
         select(ProgresoLeccion.inscripcion_id, func.count(ProgresoLeccion.id))
         .join(Leccion, Leccion.id == ProgresoLeccion.leccion_id)
+        .join(Modulo, Modulo.id == Leccion.modulo_id)
+        .join(Inscripcion, Inscripcion.id == ProgresoLeccion.inscripcion_id)
         .where(
             ProgresoLeccion.inscripcion_id.in_(list(por_insc)),  # type: ignore[attr-defined]
             ProgresoLeccion.completado == True,  # noqa: E712
             Leccion.es_visible == True,  # noqa: E712
+            Modulo.curso_id == Inscripcion.curso_id,
         )
         .group_by(ProgresoLeccion.inscripcion_id)
     ).all()
     hechas = dict(rows)
     return {cid: (True, hechas.get(iid, 0)) for iid, cid in por_insc.items()}
+
+
+def lecciones_completadas_validas(
+    *, session: Session, inscripcion_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, int]:
+    """Lecciones completadas por inscripción que CUENTAN para el avance: visibles
+    y del mismo curso de la inscripción (mismo criterio que GET /progreso/curso).
+    Excluye progreso de lecciones ocultas o de otro curso."""
+    if not inscripcion_ids:
+        return {}
+    rows = session.exec(
+        select(ProgresoLeccion.inscripcion_id, func.count(ProgresoLeccion.id))
+        .join(Leccion, Leccion.id == ProgresoLeccion.leccion_id)
+        .join(Modulo, Modulo.id == Leccion.modulo_id)
+        .join(Inscripcion, Inscripcion.id == ProgresoLeccion.inscripcion_id)
+        .where(
+            ProgresoLeccion.inscripcion_id.in_(inscripcion_ids),  # type: ignore[attr-defined]
+            ProgresoLeccion.completado == True,  # noqa: E712
+            Leccion.es_visible == True,  # noqa: E712
+            Modulo.curso_id == Inscripcion.curso_id,
+        )
+        .group_by(ProgresoLeccion.inscripcion_id)
+    ).all()
+    return dict(rows)
+
+
+def avance_por_inscripcion(
+    *, session: Session, inscripciones: list[Inscripcion]
+) -> dict[uuid.UUID, float]:
+    """% de avance (0-100) de cada inscripción, con el MISMO criterio que ve el
+    alumno en su curso: lecciones visibles completadas / lecciones visibles.
+    Una inscripción FINALIZADA cuenta como 100. Fuente única para las métricas
+    de supervisor y admin (antes cada panel promediaba algo distinto)."""
+    if not inscripciones:
+        return {}
+    totales = contar_lecciones_visibles(
+        session=session, curso_ids=list({i.curso_id for i in inscripciones})
+    )
+    hechas = lecciones_completadas_validas(
+        session=session, inscripcion_ids=[i.id for i in inscripciones]
+    )
+    out: dict[uuid.UUID, float] = {}
+    for i in inscripciones:
+        if i.estado == EstadoInscripcion.FINALIZADA:
+            out[i.id] = 100.0
+            continue
+        total = totales.get(i.curso_id, 0)
+        out[i.id] = min(100.0, 100.0 * hechas.get(i.id, 0) / total) if total else 0.0
+    return out
+
+
+def inscripciones_org(*, session: Session, org_id: uuid.UUID) -> list[Inscripcion]:
+    """Inscripciones que el supervisor de una org puede ver: de sus ALUMNOS
+    (rol ESTUDIANTE), vigentes (no canceladas) y SOLO en cursos que la org
+    licencia (incluye los cursos dentro de un global licenciado). Los cursos
+    que el alumno toma por su cuenta (p. ej. gratuitos) no son de la org.
+    Fuente única para todas las métricas de supervisor y el ranking de empresas."""
+    alumno_ids = [
+        u.id for (u, _r) in list_org_users(session=session, org_id=org_id)
+        if u.rol == RolUsuario.ESTUDIANTE
+    ]
+    if not alumno_ids:
+        return []
+    cubiertos = cursos_con_licencia_activa_orgs(session=session, org_ids=[org_id])
+    if not cubiertos:
+        return []
+    return list(session.exec(
+        select(Inscripcion).where(
+            Inscripcion.usuario_id.in_(alumno_ids),  # type: ignore[attr-defined]
+            Inscripcion.curso_id.in_(list(cubiertos)),  # type: ignore[attr-defined]
+            Inscripcion.estado != EstadoInscripcion.CANCELADO,
+        )
+    ).all())
+
+
+def licencias_vigentes_org(*, session: Session, org_id: uuid.UUID) -> list[LicenciaCurso]:
+    """Licencias de la org que hoy dan acceso: estado ACTIVA, dentro de fechas,
+    con cupo y sobre un curso PUBLICADO. Mismo criterio que el acceso del alumno
+    (`cursos_con_licencia_activa_orgs`) para que "Cursos asignados" cuadre con
+    lo que los alumnos realmente ven."""
+    now = datetime.utcnow()
+    out: list[LicenciaCurso] = []
+    for lic in session.exec(
+        select(LicenciaCurso).where(
+            LicenciaCurso.organizacion_id == org_id,
+            LicenciaCurso.estado == EstadoLicencia.ACTIVA,
+        )
+    ).all():
+        if lic.inicia_en and lic.inicia_en > now:
+            continue
+        if lic.termina_en and lic.termina_en < now:
+            continue
+        if lic.cupos_total and lic.cupos_usados >= lic.cupos_total:
+            continue
+        curso = session.get(Curso, lic.curso_id)
+        if not curso or curso.estado != EstadoCurso.PUBLICADO:
+            continue
+        out.append(lic)
+    return out
 
 
 def set_subcursos(

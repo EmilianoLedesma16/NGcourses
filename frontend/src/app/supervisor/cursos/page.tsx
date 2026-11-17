@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import ui from '@/components/admin/Panel.module.css';
 
 interface Curso {
   id: string;
@@ -14,13 +15,10 @@ interface Curso {
   marca: string;
 }
 
-function getVisibleDescription(curso: Curso): string | null {
-  const descripcion = curso.descripcion?.trim();
-  const titulo = curso.titulo.trim().toLowerCase();
-
-  if (!descripcion || descripcion.toLowerCase() === titulo) return null;
-
-  return descripcion;
+function descripcionVisible(c: Curso): string | null {
+  const d = c.descripcion?.trim();
+  if (!d || d.toLowerCase() === c.titulo.trim().toLowerCase()) return null;
+  return d;
 }
 
 export default function SupervisorCursosPage() {
@@ -35,58 +33,34 @@ export default function SupervisorCursosPage() {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Cursos de la organización</h1>
-        <p className={styles.subtitle}>Cursos con licencia activa para tu organización</p>
-      </div>
+    <div className={ui.page}>
+      <PageHeader
+        title="Cursos"
+        subtitle="Cursos con licencia vigente para tu organización"
+        actions={<Link href="/supervisor/solicitudes" className="ng-btn ng-btn-secondary">Solicitar un curso</Link>}
+      />
 
       {loading ? (
-        <p>Cargando...</p>
+        <p className={ui.empty}>Cargando…</p>
       ) : cursos.length === 0 ? (
-        <div className={styles.emptyCard}>
-          <p>Aún no tienes cursos asignados.</p>
-          <Link href="/supervisor/solicitudes" className={styles.ctaLink}>Solicitar un curso</Link>
-        </div>
+        <div className={`${ui.card} ${ui.empty}`}>Aún no tienes cursos asignados.</div>
       ) : (
-        <div className={styles.grid}>
-          {cursos.map((c) => (
-            <Link
-              key={c.id}
-              href={`/curso/${c.id}`}
-              className={styles.cursoCard}
-              aria-label={`Ir al curso ${c.titulo}`}
-            >
-              <div className={styles.cursoBody}>
-                <div className={styles.cursoHeader}>
-                  <h3 className={styles.cursoTitle}>{c.titulo}</h3>
-                  <span className={styles.badge}>{c.marca}</span>
-                </div>
-
-                {getVisibleDescription(c) && (
-                  <p className={styles.cursoDescription}>{getVisibleDescription(c)}</p>
-                )}
-
-                <div className={styles.cardFooter}>
-                  <span className={styles.openHint}>Ir al curso</span>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-          ))}
+        <div className={ui.grid}>
+          {cursos.map((c) => {
+            const desc = descripcionVisible(c);
+            return (
+              <Link key={c.id} href={`/curso/${c.id}`} className={ui.tile}>
+                <span className={`${ui.badge} ${ui.badgeInfo}`} style={{ alignSelf: 'flex-start' }}>
+                  {c.marca === 'ram' ? 'RAM' : 'NextGen'}
+                </span>
+                <h2 className={ui.tileTitle}>{c.titulo}</h2>
+                {desc && <p className={ui.tileText}>{desc}</p>}
+                <span className={ui.tileFoot}>
+                  Revisar contenido <b aria-hidden="true">→</b>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

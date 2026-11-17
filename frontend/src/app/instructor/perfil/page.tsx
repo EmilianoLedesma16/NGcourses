@@ -2,9 +2,12 @@
 
 import { avatarOf, avatarFileError, AVATAR_ACCEPT } from '@/lib/avatar';
 import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { authApi, cursosApi, usersApi } from '@/lib/api/client';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
+import BrandLoader from '@/components/shared/BrandLoader';
+import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
 interface ApiUser {
   id: string;
@@ -27,7 +30,6 @@ interface ApiCursosResp {
 }
 
 export default function PerfilInstructorPage() {
-  const router = useRouter();
   const [user, setUser] = useState<ApiUser | null>(null);
   const [cursos, setCursos] = useState<ApiCurso[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,25 +132,15 @@ export default function PerfilInstructorPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando...</span>
-      </div>
+      <BrandLoader label="Cargando" />
     );
   }
 
   const nombre = user?.full_name || user?.email?.split('@')[0] || 'Instructor';
-  const initials = nombre.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('') || 'I';
 
   return (
     <div className={styles.pageContainer}>
-      <button className={styles.backButton} onClick={() => router.push('/instructor')}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 10.5 12 3l9 7.5" />
-          <path d="M5 10v10h14V10" />
-          <path d="M9 20v-6h6v6" />
-        </svg>
-        Volver al dashboard
-      </button>
+      <BackLink href="/instructor">Volver al dashboard</BackLink>
 
       <div className={styles.profileContainer}>
         <div className={styles.profileHeader}>
@@ -157,7 +149,7 @@ export default function PerfilInstructorPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt={nombre} className={styles.avatarImg} />
             ) : (
-              <div className={styles.avatarLarge}>{initials}</div>
+              <div className={styles.avatarLarge} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={user?.id ?? nombre} /></div>
             )}
             <button
               className={styles.changeAvatarBtn}
@@ -259,10 +251,10 @@ export default function PerfilInstructorPage() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Teléfono</label>
                 <input
-                  type="tel"
+                  {...PHONE_INPUT_PROPS}
                   className={styles.formInput}
                   value={editForm.telefono}
-                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: sanitizePhone(e.target.value) }))}
                   placeholder="+52 55 0000 0000"
                 />
               </div>

@@ -5,6 +5,7 @@ import PageHeader from '@/components/admin/PageHeader';
 import { usersApi, cursosApi, inscripcionesApi, quizApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -323,14 +324,12 @@ export default function AlumnosAdminPage() {
       return (
         <>
           {panel.type === 'alumno-en-stats' && (
-            <button
+            <BackLink
               className={styles.panelBackBtn}
               onClick={() => setPanel({ type: 'curso-alumnos', curso: panel.desde, inscripciones: [] })}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
               Volver a alumnos de &ldquo;{panel.desde.titulo}&rdquo;
-            </button>
+            </BackLink>
           )}
           <ul className={styles.panelList}>
             {inscripciones.length === 0 && (

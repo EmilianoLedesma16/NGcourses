@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usersApi, cursosApi } from '@/lib/api/client';
 import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 interface ApiUser {
   id: string;
@@ -97,14 +98,7 @@ export default function AdminInstructoresPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.headerBar}>
-        <button className={styles.backButton} onClick={() => router.push('/admin')}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 10.5 12 3l9 7.5" />
-            <path d="M5 10v10h14V10" />
-            <path d="M9 20v-6h6v6" />
-          </svg>
-          Volver a opciones
-        </button>
+        <BackLink href="/admin">Volver a opciones</BackLink>
       </div>
 
       <div className={styles.titleSection}>

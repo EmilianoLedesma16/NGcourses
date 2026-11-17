@@ -311,6 +311,7 @@
 .ringRev { stroke: #d99a2b; background: #d99a2b; }
 .ringDraft { stroke: #a9b3bf; background: #a9b3bf; }
 .ringRej { stroke: #c2410c; background: #c2410c; }
+.ringArch { stroke: #64748b; background: #64748b; }
 
 [data-theme='dark'] .ringDraft { stroke: #5b6675; background: #5b6675; }
 
@@ -471,5 +472,57 @@ a.rankName:hover {
 
   .panel {
     padding: 1.125rem;
+  }
+}
+
+/* ── Cifras clave (fila de KPIs) ─────────────────────────────────────── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.75rem;
+  background: var(--color-primary-60-alt);
+}
+
+.kpi {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-left: 1px solid var(--color-border-default);
+}
+
+.kpi:first-child {
+  border-left: none;
+}
+
+.kpiLabel {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.kpiValue {
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiHint {
+  font-size: 0.75rem;
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 760px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kpi:nth-child(3) {
+    border-left: none;
+  }
+
+  .kpi:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border-default);
   }
 }

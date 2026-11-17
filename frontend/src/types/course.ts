@@ -144,6 +144,8 @@ export interface CourseCard {
   /** Solo en cursos globales: cursos dentro y avance del alumno. */
   subcursosTotal?: number;
   subcursosCompletados?: number;
+  /** Cursos del global en los que el alumno ya está inscrito. */
+  subcursosInscritos?: number;
   leccionesTotal?: number;
   leccionesCompletadas?: number;
   subcursosTitulos?: string[];

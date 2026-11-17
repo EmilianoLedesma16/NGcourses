@@ -152,7 +152,7 @@ export default function CrearUsuarioEmpresaPage() {
 
           <div>
             <label style={labelStyle}>Nombre completo *</label>
-            <input
+            <input maxLength={255}
               type="text"
               required
               value={form.full_name}

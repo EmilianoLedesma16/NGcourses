@@ -24,6 +24,22 @@ from app.utils import (
 router = APIRouter(tags=["login"])
 
 
+def _set_persist_cookie(response: Response, remember: bool) -> None:
+    """Marca (o borra) la preferencia "Recordarme" para la rotación del refresh."""
+    if remember:
+        response.set_cookie(
+            key="session_persist", value="1", httponly=True,
+            secure=settings.ENABLE_HTTPS, samesite=settings.AUTH_COOKIE_SAMESITE,
+            domain=settings.AUTH_COOKIE_DOMAIN,
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60, path="/",
+        )
+    else:
+        response.delete_cookie(
+            "session_persist", path="/",
+            domain=settings.AUTH_COOKIE_DOMAIN, samesite=settings.AUTH_COOKIE_SAMESITE,
+        )
+
+
 @router.post("/login/access-token", response_model=UserPublic)
 @limiter.limit("5/minute")
 def login_access_token(
@@ -31,9 +47,18 @@ def login_access_token(
     response: Response,
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    remember: bool = False,
 ) -> Any:
     """
     OAuth2 compatible token login. Emite cookie HttpOnly con el JWT (FND-003).
+
+    `remember` ("Recordarme"): decide la vida del REFRESH token. Si es falso, su
+    cookie no lleva max_age (se borra al cerrar el navegador); si es verdadero,
+    persiste REFRESH_TOKEN_EXPIRE_DAYS días. El access token SIEMPRE caduca a los
+    ACCESS_TOKEN_EXPIRE_MINUTES: si su cookie sobreviviera al JWT, el navegador
+    mandaría un token vencido y la sesión no se renovaría. La
+    preferencia viaja en la cookie `session_persist` para que la rotación del
+    refresh la respete.
     """
     user = crud.authenticate(
         session=session, email=form_data.username, password=form_data.password
@@ -88,9 +113,10 @@ def login_access_token(
             secure=settings.ENABLE_HTTPS,
             samesite=settings.AUTH_COOKIE_SAMESITE,
         domain=settings.AUTH_COOKIE_DOMAIN,
-            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60 if remember else None,
             path="/",
         )
+        _set_persist_cookie(response, remember)
     except Exception:
         session.rollback()
     return UserPublic.model_validate(user)
@@ -123,6 +149,7 @@ def logout(
         domain=settings.AUTH_COOKIE_DOMAIN,
         samesite=settings.AUTH_COOKIE_SAMESITE,
     )
+    _set_persist_cookie(response, False)
     return Message(message="Sesión cerrada")
 
 
@@ -133,8 +160,11 @@ def refresh_access_token(
     response: Response,
     session: SessionDep,
     refresh_token: Annotated[str | None, Cookie()] = None,
+    session_persist: Annotated[str | None, Cookie()] = None,
 ) -> Message:
-    """Rota el refresh token y emite un nuevo access token sin re-login (FND-007)."""
+    """Rota el refresh token y emite un nuevo access token sin re-login (FND-007).
+    Respeta "Recordarme": sin `session_persist` las cookies siguen siendo de sesión."""
+    persist = session_persist == "1"
     if not refresh_token:
         raise HTTPException(status_code=401, detail="No autenticado")
 
@@ -194,9 +224,10 @@ def refresh_access_token(
         secure=settings.ENABLE_HTTPS,
         samesite=settings.AUTH_COOKIE_SAMESITE,
         domain=settings.AUTH_COOKIE_DOMAIN,
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60 if persist else None,
         path="/",
     )
+    _set_persist_cookie(response, persist)
     return Message(message="Token renovado")
 
 

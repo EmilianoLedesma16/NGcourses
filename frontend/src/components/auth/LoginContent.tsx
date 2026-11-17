@@ -63,7 +63,7 @@ export default function LoginContent() {
     }
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(email, password, rememberMe);
       if (user.is_superuser || user.rol === 'administrador') {
         window.location.replace('/admin');
       } else if (user.rol === 'instructor') {
@@ -239,6 +239,12 @@ export default function LoginContent() {
               <button type="submit" className={styles.submitButton} disabled={loading}>
                 {loading ? 'Ingresando...' : 'Iniciar sesión'}
               </button>
+
+              <p className={styles.legalNote}>
+                Al iniciar sesión aceptas los{' '}
+                <a href="/terminos">Términos y condiciones</a> y el{' '}
+                <a href="/privacidad">Aviso de privacidad</a>.
+              </p>
             </form>
 
           </div>
@@ -246,7 +252,12 @@ export default function LoginContent() {
       </main>
 
       <footer className={styles.footer}>
-        © NextGen Course. Todos los derechos reservados.
+        <span>© NextGen Course. Todos los derechos reservados.</span>
+        <nav className={styles.footerLinks} aria-label="Legal">
+          <a href="/terminos">Términos y condiciones</a>
+          <span aria-hidden="true">·</span>
+          <a href="/privacidad">Aviso de privacidad</a>
+        </nav>
       </footer>
     </div>
   );

@@ -13,6 +13,7 @@ import { normalizeQuizData } from '@/lib/quizData';
 import { logError } from '@/lib/logger';
 import StudentUserMenu from '@/components/shared/StudentUserMenu';
 import styles from './CourseVideoContent.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 interface CourseVideoContentProps {
   initialCourse: Course;
@@ -192,10 +193,7 @@ export default function CourseVideoContent({ initialCourse, inscripcionId, bunny
         </header>
         <div className={styles.main}>
           <div className={styles.backButtonContainer}>
-            <Link href={resolvedBackHref} className={styles.backButton}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-              Información del curso
-            </Link>
+            <BackLink href={resolvedBackHref}>Información del curso</BackLink>
           </div>
           <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-secondary)' }}>
             Este curso aún no tiene lecciones disponibles.
@@ -223,10 +221,7 @@ export default function CourseVideoContent({ initialCourse, inscripcionId, bunny
 
       <div className={styles.main}>
         <div className={styles.backButtonContainer}>
-          <Link href={resolvedBackHref} className={styles.backButton}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            Información del curso
-          </Link>
+          <BackLink href={resolvedBackHref}>Información del curso</BackLink>
         </div>
         <h1 className={styles.pageTitle}>{course.title}</h1>
 

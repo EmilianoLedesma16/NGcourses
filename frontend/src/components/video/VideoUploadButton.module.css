@@ -76,3 +76,35 @@
   font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
+
+/* Acción destructiva secundaria: contorno rojo, no compite con "Reemplazar". */
+.deleteButton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #dc2626;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: #dc2626;
+}
+
+.deleteButton:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+[data-theme='dark'] .deleteButton {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.5);
+}

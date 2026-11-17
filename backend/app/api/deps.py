@@ -46,9 +46,11 @@ def get_current_user(
         )
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
+        # 401 (no 403): un token vencido o inválido es "sesión no válida"; el
+        # front responde a 401 renovando con el refresh token y reintentando.
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesión expirada",
         )
     user = session.get(User, token_data.sub)
     if not user:

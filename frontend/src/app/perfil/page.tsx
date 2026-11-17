@@ -7,6 +7,8 @@ import { authApi, cursosApi, inscripcionesApi, progresoApi, usersApi } from '@/l
 import type { UserProfile, UserStatistics, CourseInProgress } from '@/types/course';
 import styles from './page.module.css';
 import { EditProfileSchema, ChangePasswordSchema } from '@/schemas/profile';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiUser {
   id: string;
@@ -225,9 +227,7 @@ export default function PerfilPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando perfil...</span>
-      </div>
+      <BrandLoader label="Cargando perfil" />
     );
   }
 
@@ -255,7 +255,7 @@ export default function PerfilPage() {
             <form onSubmit={handleSaveEdit} className={styles.editForm}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Nombre completo</label>
-                <input
+                <input maxLength={255}
                   type="text"
                   className={styles.formInput}
                   value={editForm.full_name}
@@ -282,10 +282,10 @@ export default function PerfilPage() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Teléfono</label>
                 <input
-                  type="tel"
+                  {...PHONE_INPUT_PROPS}
                   className={styles.formInput}
                   value={editForm.telefono}
-                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: sanitizePhone(e.target.value) }))}
                   placeholder="+52 55 0000 0000"
                 />
               </div>

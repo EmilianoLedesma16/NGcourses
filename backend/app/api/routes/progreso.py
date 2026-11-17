@@ -71,6 +71,12 @@ def registrar_progreso(
     db_leccion = session.get(Leccion, progreso_in.leccion_id)
     if not db_leccion:
         raise HTTPException(status_code=404, detail="Lección no encontrada")
+    # Integridad: la lección debe ser del curso de ESA inscripción y estar
+    # visible. Antes se aceptaba progreso de una lección de otro curso (o de una
+    # lección oculta) y eso inflaba las métricas de avance del admin.
+    db_modulo = session.get(Modulo, db_leccion.modulo_id)
+    if not db_modulo or db_modulo.curso_id != inscripcion.curso_id or not db_leccion.es_visible:
+        raise HTTPException(status_code=404, detail="Lección no encontrada en este curso")
 
     # Upsert progreso
     db_prog = crud.upsert_progreso(

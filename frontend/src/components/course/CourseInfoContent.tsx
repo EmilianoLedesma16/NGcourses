@@ -11,6 +11,7 @@ import LessonThumb from './LessonThumb';
 import styles from './CourseInfoContent.module.css';
 import globalStyles from './GlobalCourseContent.module.css';
 import { sinPrefijo } from './GlobalCourseContent';
+import BackLink from '@/components/shared/BackLink';
 
 /** Curso global al que pertenece este curso, y su lugar en él. */
 export interface CoursePadre {
@@ -375,10 +376,7 @@ export default function CourseInfoContent({
             )}
           </nav>
         ) : (
-          <Link href={backHref} className={styles.backLink}>
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            Volver
-          </Link>
+          <BackLink href={backHref} className={styles.backLink}>Volver</BackLink>
         )}
 
         <div className={styles.layout}>

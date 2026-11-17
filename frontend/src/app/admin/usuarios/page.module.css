@@ -631,3 +631,10 @@
 .submitButton:hover:not(:disabled) {
   background: var(--color-accent-10-hover);
 }
+
+.formHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}

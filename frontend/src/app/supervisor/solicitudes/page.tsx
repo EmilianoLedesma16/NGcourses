@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import ui from '@/components/admin/Panel.module.css';
 
 interface Comentario {
   comentario: string;
@@ -60,7 +61,7 @@ export default function SupervisorSolicitudesPage() {
         titulo_solicitud: form.titulo_solicitud,
         descripcion: form.descripcion || undefined,
       });
-      setMsg('Solicitud enviada');
+      setMsg('Solicitud enviada. Verás la respuesta de NextGen en el historial.');
       setForm({ titulo_solicitud: '', descripcion: '' });
       load();
     } catch (error: unknown) {
@@ -75,81 +76,85 @@ export default function SupervisorSolicitudesPage() {
     try { return new Date(iso).toLocaleDateString('es-MX'); } catch { return '—'; }
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Solicitudes de cursos</h1>
-        <p className={styles.subtitle}>Pide nuevos cursos a NextGen y revisa el estado de solicitudes anteriores</p>
-      </div>
+  const ESTADO_CLS: Record<string, string> = {
+    abierta: ui.badgeWarn, en_revision: ui.badgeInfo, aprobada: ui.badgeOk, rechazada: ui.badgeBad,
+  };
 
-      <section className={styles.card}>
-        <h2 className={styles.sectionTitle}>Nueva solicitud</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Título *</label>
-            <input type="text" required className={styles.formInput}
+  return (
+    <div className={ui.page}>
+      <PageHeader title="Solicitudes" subtitle="Pide nuevos cursos a NextGen y sigue el estado de tus solicitudes" />
+
+      <section className={ui.card} aria-labelledby="sol-nueva">
+        <div className={ui.cardHead}>
+          <h2 id="sol-nueva" className={ui.cardTitle}>Nueva solicitud</h2>
+        </div>
+        <form onSubmit={handleSubmit} className={ui.form}>
+          <div className={ui.field}>
+            <label className={ui.label} htmlFor="sol-titulo">Curso que necesitas</label>
+            <input id="sol-titulo" maxLength={255} type="text" required className={ui.input}
               value={form.titulo_solicitud}
               onChange={(e) => setForm({ ...form, titulo_solicitud: e.target.value })}
-              placeholder="Ej: Curso de liderazgo" />
+              placeholder="Ej. Liderazgo para mandos medios" />
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Descripción</label>
-            <textarea rows={3} className={styles.formInput}
+          <div className={ui.field}>
+            <label className={ui.label} htmlFor="sol-desc">Detalles <span className={ui.hint}>· opcional</span></label>
+            <textarea id="sol-desc" rows={3} maxLength={2000} className={ui.textarea}
               value={form.descripcion}
               onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-              placeholder="Detalles adicionales sobre el curso solicitado" />
+              placeholder="A quién va dirigido, temas que debe cubrir, fechas…" />
           </div>
-          {err && <p className={styles.formError}>{err}</p>}
-          {msg && <p className={styles.formMsg}>{msg}</p>}
-          <div>
-            <button type="submit" className={styles.submitButton} disabled={submitLoading}>
-              {submitLoading ? 'Enviando...' : 'Enviar solicitud'}
+          {err && <p className={ui.msgError}>{err}</p>}
+          {msg && <p className={ui.msgOk}>{msg}</p>}
+          <div className={ui.actions}>
+            <button type="submit" className="ng-btn ng-btn-primary" disabled={submitLoading}>
+              {submitLoading ? 'Enviando…' : 'Enviar solicitud'}
             </button>
           </div>
         </form>
       </section>
 
-      <section className={styles.card}>
-        <h2 className={styles.sectionTitle}>Historial</h2>
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
+      <section aria-labelledby="sol-historial" className={ui.block}>
+        <div className={ui.cardHead}>
+          <h2 id="sol-historial" className={ui.cardTitle}>Historial</h2>
+        </div>
+        <div className={ui.tableWrap}>
+          <table className={ui.table}>
             <thead>
               <tr>
-                <th>Título</th>
-                <th>Descripción</th>
+                <th>Solicitud</th>
                 <th>Estado</th>
-                <th>Mensaje de NextGen</th>
+                <th>Respuesta de NextGen</th>
                 <th>Fecha</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className={styles.emptyState}>Cargando...</td></tr>
-              ) : solicitudes.length > 0 ? (
+                <tr><td colSpan={4} className={ui.empty}>Cargando…</td></tr>
+              ) : solicitudes.length === 0 ? (
+                <tr><td colSpan={4} className={ui.empty}>Aún no has enviado solicitudes.</td></tr>
+              ) : (
                 solicitudes.map((s) => (
                   <tr key={s.id}>
-                    <td className={styles.celdaTexto}>{s.titulo_solicitud}</td>
-                    <td className={styles.celdaTexto}>{s.descripcion || '—'}</td>
-                    <td>{ESTADO_LABEL[s.estado] || s.estado}</td>
-                    <td>
+                    <td className={ui.wrapText}>
+                      <span className={ui.strong}>{s.titulo_solicitud}</span>
+                      {s.descripcion && <span className={ui.subline}>{s.descripcion}</span>}
+                    </td>
+                    <td><span className={`${ui.badge} ${ESTADO_CLS[s.estado] ?? ''}`}>{ESTADO_LABEL[s.estado] || s.estado}</span></td>
+                    <td className={ui.wrapText}>
                       {s.comentarios && s.comentarios.length > 0 ? (
-                        <div className={styles.mensajes}>
-                          {s.comentarios.map((c, i) => (
-                            <div key={i} className={styles.mensaje}>
-                              <p className={styles.mensajeTexto}>{c.comentario}</p>
-                              <span className={styles.mensajeFecha}>{formatDate(c.creado_en)}</span>
-                            </div>
-                          ))}
-                        </div>
+                        s.comentarios.map((c, i) => (
+                          <p key={i} className={ui.comment}>
+                            {c.comentario}
+                            <span className={ui.subline}>{formatDate(c.creado_en)}</span>
+                          </p>
+                        ))
                       ) : (
-                        <span className={styles.sinMensaje}>—</span>
+                        <span className={ui.muted}>—</span>
                       )}
                     </td>
-                    <td>{formatDate(s.creado_en)}</td>
+                    <td className={`${ui.num} ${ui.muted}`}>{formatDate(s.creado_en)}</td>
                   </tr>
                 ))
-              ) : (
-                <tr><td colSpan={5} className={styles.emptyState}>Sin solicitudes</td></tr>
               )}
             </tbody>
           </table>

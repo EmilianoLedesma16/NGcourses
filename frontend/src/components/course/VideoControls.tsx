@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Resource } from '@/types/course';
 import { cursosApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
@@ -24,14 +24,12 @@ export default function VideoControls({
   onMarkComplete,
   resources,
   resumen,
-  courseId,
-  lessonId,
   certFolio,
   onDownloadCert,
   downloading,
   readOnlyMode = false,
 }: VideoControlsProps) {
-  const [activeTab, setActiveTab] = useState<'resumen' | 'recursos' | 'notas'>('resumen');
+  const [activeTab, setActiveTab] = useState<'resumen' | 'recursos'>('resumen');
   const [isCompleted, setIsCompleted] = useState(false);
   const [descargandoRecurso, setDescargandoRecurso] = useState<string | null>(null);
 
@@ -46,40 +44,16 @@ export default function VideoControls({
     }
   };
 
-  // Notas (localStorage por lección)
-  const notasKey = `notas_${courseId}_${lessonId}`;
-  const [nota, setNota] = useState('');
-  const [notaMsg, setNotaMsg] = useState('');
-  useEffect(() => {
-    if (lessonId) {
-      setNota(localStorage.getItem(notasKey) || '');
-    }
-  }, [lessonId, notasKey]);
-  const handleSaveNota = () => {
-    localStorage.setItem(notasKey, nota);
-    setNotaMsg('✓ Nota guardada en este dispositivo');
-    setTimeout(() => setNotaMsg(''), 2500);
-  };
-  const handleDescargarNota = () => {
-    const blob = new Blob([nota], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nota-${lessonId ?? 'leccion'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const handleMarkComplete = () => {
     setIsCompleted(true);
     onMarkComplete();
     setTimeout(() => setIsCompleted(false), 2000);
   };
 
-  // Las reseñas viven en la ficha del curso, no en cada lección.
-  const tabs = ['resumen', 'recursos', 'notas'] as const;
+  // Las reseñas viven en la ficha del curso, no en cada lección. Las notas
+  // personales se retiraron: vivían solo en el navegador (se perdían al cambiar
+  // de equipo o limpiar datos) y el alumno ya toma notas por su cuenta.
+  const tabs = ['resumen', 'recursos'] as const;
 
   const getFileIcon = (type: Resource['type']) => {
     switch (type) {
@@ -186,35 +160,6 @@ export default function VideoControls({
           ) : (
             <p className={styles.emptyMessage}>No hay recursos disponibles para esta lección.</p>
           )}
-        </div>
-      )}
-
-      {activeTab === 'notas' && (
-        <div className={styles.tabContent}>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
-            Tus notas se guardan localmente en este dispositivo.
-          </p>
-          <textarea
-            className={styles.notasTextarea}
-            value={nota}
-            onChange={(e) => setNota(e.target.value)}
-            placeholder="Escribe tus notas para esta lección..."
-            rows={6}
-          />
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className={styles.saveNotaBtn} onClick={handleSaveNota}>
-              Guardar nota
-            </button>
-            <button
-              className={styles.saveNotaBtn}
-              onClick={handleDescargarNota}
-              disabled={!nota.trim()}
-              style={{ background: 'transparent', color: 'var(--color-secondary-30)', border: '1px solid currentColor' }}
-            >
-              Descargar (.txt)
-            </button>
-            {notaMsg && <span style={{ fontSize: '0.8rem', color: '#16a34a' }}>{notaMsg}</span>}
-          </div>
         </div>
       )}
 

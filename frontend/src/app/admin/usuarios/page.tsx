@@ -8,11 +8,11 @@ import { getCurrentUser } from '@/lib/auth';
 import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import PageHeader from '@/components/admin/PageHeader';
 import styles from './page.module.css';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
 
 interface CreateUserForm {
   email: string;
   full_name: string;
-  password: string;
   rol: string;
   telefono: string;
 }
@@ -49,7 +49,7 @@ export default function UsuariosPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateUserForm>({ email: '', full_name: '', password: '', rol: 'estudiante', telefono: '' });
+  const [createForm, setCreateForm] = useState<CreateUserForm>({ email: '', full_name: '', rol: 'estudiante', telefono: '' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState('');
   const [reenviarId, setReenviarId] = useState<string | null>(null);
@@ -145,12 +145,11 @@ export default function UsuariosPage() {
       await usersApi.create({
         email: createForm.email,
         full_name: createForm.full_name || null,
-        password: createForm.password,
         rol: createForm.rol,
         telefono: createForm.telefono || null,
       });
       setShowCreateModal(false);
-      setCreateForm({ email: '', full_name: '', password: '', rol: 'estudiante', telefono: '' });
+      setCreateForm({ email: '', full_name: '', rol: 'estudiante', telefono: '' });
       fetchUsers();
     } catch (err: unknown) {
       const apiErr = err as { detail?: string };
@@ -362,7 +361,7 @@ export default function UsuariosPage() {
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Nombre completo</label>
-                <input
+                <input maxLength={255}
                   type="text"
                   value={createForm.full_name}
                   onChange={(e) => setCreateForm((f) => ({ ...f, full_name: e.target.value }))}
@@ -371,23 +370,11 @@ export default function UsuariosPage() {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Contraseña * (mín. 8 caracteres)</label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={createForm.password}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))}
-                  className={styles.formInput}
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Teléfono</label>
                 <input
-                  type="tel"
+                  {...PHONE_INPUT_PROPS}
                   value={createForm.telefono}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, telefono: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, telefono: sanitizePhone(e.target.value) }))}
                   className={styles.formInput}
                   placeholder="+52 55 0000 0000"
                 />
@@ -404,6 +391,9 @@ export default function UsuariosPage() {
                   <option value="administrador">Administrador</option>
                 </select>
               </div>
+              <p className={styles.formHint}>
+                No necesitas definir contraseña: le enviaremos un correo para activar su cuenta y crear la suya.
+              </p>
               {createError && <p className={styles.formError}>{createError}</p>}
               <div className={styles.modalActions}>
                 <button type="button" className={styles.cancelButton} onClick={() => setShowCreateModal(false)}>

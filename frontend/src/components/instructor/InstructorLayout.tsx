@@ -15,7 +15,7 @@ interface InstructorLayoutProps {
 
 export const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [headerUser, setHeaderUser] = useState<{ name: string; initials: string; role: string; avatarUrl?: string | null } | undefined>(undefined);
+  const [headerUser, setHeaderUser] = useState<{ name: string; initials: string; role: string; avatarUrl?: string | null; seed?: string } | undefined>(undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +29,7 @@ export const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) 
       setHeaderUser({
         name,
         initials: name.slice(0, 2).toUpperCase(),
+        seed: u.id,
         role: 'Instructor',
         avatarUrl: stored || null,
       });

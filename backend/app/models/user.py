@@ -2,12 +2,13 @@ import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
-from pydantic import ConfigDict, EmailStr
+from pydantic import ConfigDict, EmailStr, field_validator
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models._enums import EstadoUsuario, RolUsuario
+from app.models._validators import normalizar_telefono
 
 _rol_type = sa.Enum(RolUsuario, values_callable=lambda obj: [e.value for e in obj], name="rolusuario", create_type=False)
 _estado_type = sa.Enum(EstadoUsuario, values_callable=lambda obj: [e.value for e in obj], name="estadousuario", create_type=False)
@@ -30,6 +31,21 @@ class UserBase(SQLModel):
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("telefono", mode="before")
+    @classmethod
+    def _tel(cls, v: object) -> str | None:
+        return normalizar_telefono(v)
+
+
+class UserAltaAdmin(UserBase):
+    """Alta desde el panel admin: SIN contraseña. La cuenta nace pendiente de
+    activación y el usuario crea su contraseña con el enlace del correo."""
+
+    @field_validator("telefono", mode="before")
+    @classmethod
+    def _tel(cls, v: object) -> str | None:
+        return normalizar_telefono(v)
 
 
 class UserRegister(SQLModel):
@@ -54,11 +70,21 @@ class UserUpdate(SQLModel):
     whatsapp_opt_in: bool | None = None
     notif_prefs: dict | None = None
 
+    @field_validator("telefono", mode="before")
+    @classmethod
+    def _tel(cls, v: object) -> str | None:
+        return normalizar_telefono(v)
+
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     telefono: str | None = Field(default=None, max_length=20)
+
+    @field_validator("telefono", mode="before")
+    @classmethod
+    def _tel(cls, v: object) -> str | None:
+        return normalizar_telefono(v)
 
 
 class UpdatePassword(SQLModel):

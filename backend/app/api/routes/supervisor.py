@@ -5,17 +5,25 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from pydantic import EmailStr
 from sqlmodel import SQLModel, select
 
 from app import crud
 from app.api.deps import SessionDep, SupervisorOrAbove
+from app.api.routes.admin_stats import Embudo, Semana, resumen_avance
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models import User, UserCreate
-from app.models._enums import EstadoCurso, EstadoInscripcion, EstadoLicencia, RolOrganizacion, RolUsuario
-from app.models.inscripcion import Inscripcion, ProgresoLeccion
+from app.models._enums import (
+    EstadoCurso,
+    EstadoInscripcion,
+    EstadoLicencia,
+    RolOrganizacion,
+    RolUsuario,
+)
+from app.models._validators import Telefono, Texto255
 from app.models.organizacion import LicenciaCurso, SolicitudCurso, UsuarioOrganizacion
-from app.utils import email_formato_valido
+from app.utils import email_formato_valido, generate_activacion_email, send_email
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +59,11 @@ class UsuarioOrgPublic(SQLModel):
 
 
 class CrearUsuarioBody(SQLModel):
-    email: str
-    password: str
-    full_name: str | None = None
-    telefono: str | None = None
+    """Alta de un alumno por el supervisor. SIN contraseña: la cuenta nace
+    pendiente y el alumno crea la suya con el enlace de activación."""
+    email: EmailStr
+    full_name: Texto255 = None
+    telefono: Telefono = None
 
 
 class CursoOrgPublic(SQLModel):
@@ -161,11 +170,11 @@ def cursos_de_mi_org(
     *, session: SessionDep, current_user: SupervisorOrAbove,
 ) -> Any:
     org, _rol = _get_user_org(session, current_user.id)
-    licencias = crud.list_licencias_by_org(session=session, org_id=org.id)
+    # Solo licencias que hoy dan acceso (fechas, cupo, curso publicado): mismo
+    # criterio que la tarjeta "Cursos asignados" y que el catálogo del alumno.
+    licencias = crud.licencias_vigentes_org(session=session, org_id=org.id)
     result: list[CursoOrgPublic] = []
     for lic in licencias:
-        if lic.estado != EstadoLicencia.ACTIVA:
-            continue
         curso = crud.get_curso(session=session, curso_id=lic.curso_id)
         if not curso:
             continue
@@ -184,23 +193,18 @@ def usuarios_de_mi_org(
     org, _rol = _get_user_org(session, current_user.id)
     rows = crud.list_org_users(session=session, org_id=org.id)
     result: list[UsuarioOrgPublic] = []
+    # Inscripciones vigentes en cursos de la org (crud.inscripciones_org), y su %
+    # de avance con el mismo criterio que ve el alumno en su curso. Antes se
+    # promediaban las filas de progreso por lección (≈100 % con una sola lección
+    # vista) y solo se contaban las inscripciones activas.
+    vigentes = crud.inscripciones_org(session=session, org_id=org.id)
+    avance = crud.avance_por_inscripcion(session=session, inscripciones=vigentes)
     for (u, r) in rows:
-        # Progreso promedio del usuario (ProgresoLeccion no tiene usuario_id directo)
-        insc_ids_u = session.exec(
-            select(Inscripcion.id).where(Inscripcion.usuario_id == u.id)
-        ).all()
-        progresos = list(session.exec(
-            select(ProgresoLeccion.progreso_pct).where(
-                ProgresoLeccion.inscripcion_id.in_(insc_ids_u)  # type: ignore[attr-defined]
-            )
-        ).all()) if insc_ids_u else []
-        prom = round(float(sum(progresos) / len(progresos)), 2) if progresos else 0.0
-        inscripciones = list(session.exec(
-            select(Inscripcion).where(
-                Inscripcion.usuario_id == u.id,
-                Inscripcion.estado == EstadoInscripcion.ACTIVA,
-            )
-        ).all())
+        inscripciones = [i for i in vigentes if i.usuario_id == u.id]
+        prom = (
+            round(sum(avance[i.id] for i in inscripciones) / len(inscripciones), 2)
+            if inscripciones else 0.0
+        )
         result.append(UsuarioOrgPublic(
             id=u.id, email=u.email, full_name=u.full_name, telefono=u.telefono,
             is_active=u.is_active,
@@ -229,14 +233,22 @@ def crear_usuario(
             )
         user = existing
     else:
-        user_in = UserCreate(
-            email=body.email,
-            password=body.password,
-            full_name=body.full_name,
-            rol=RolUsuario.ESTUDIANTE,
-            telefono=body.telefono,
+        user, _creado, token = crud.get_or_create_user_by_email(
+            session=session, email=body.email
         )
-        user = crud.create_user(session=session, user_create=user_in)
+        if body.full_name or body.telefono:
+            user.full_name = body.full_name or user.full_name
+            user.telefono = body.telefono or user.telefono
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+        if token and settings.emails_enabled:
+            email_data = generate_activacion_email(email_to=user.email, token=token)
+            send_email(
+                email_to=user.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
 
     crud.add_user_to_organizacion(
         session=session, org_id=org.id, user_id=user.id,
@@ -446,6 +458,80 @@ def stats(
     org, _rol = _get_user_org(session, current_user.id)
     data = crud.get_org_stats(session=session, org_id=org.id)
     return StatsPublic(**data)
+
+
+class CursoAvance(SQLModel):
+    id: uuid.UUID
+    titulo: str
+    inscritos: int
+    terminaron: int
+    avance_promedio: float
+
+
+class AlumnoAvance(SQLModel):
+    id: uuid.UUID
+    nombre: str
+    cursos: int
+    terminados: int
+    avance_promedio: float
+
+
+class SupervisorDashboard(SQLModel):
+    embudo: Embudo
+    semanas: list[Semana]
+    cursos: list[CursoAvance]
+    alumnos: list[AlumnoAvance]
+    alumnos_sin_inscripcion: int
+
+
+@router.get("/dashboard", response_model=SupervisorDashboard)
+def dashboard(
+    *, session: SessionDep, current_user: SupervisorOrAbove,
+) -> Any:
+    """Gráficas del panel del supervisor, con el mismo cálculo que el panel
+    admin pero acotado a los alumnos de su org en los cursos que la org licencia."""
+    org, _rol = _get_user_org(session, current_user.id)
+    inscripciones = crud.inscripciones_org(session=session, org_id=org.id)
+    embudo, semanas, avance = resumen_avance(session=session, inscripciones=inscripciones)
+
+    def _fin(i: Any) -> bool:
+        return i.estado == EstadoInscripcion.FINALIZADA
+
+    # Avance por curso (un curso global se desglosa en sus cursos, que es donde
+    # vive la inscripción).
+    por_curso: dict[uuid.UUID, list[Any]] = {}
+    for i in inscripciones:
+        por_curso.setdefault(i.curso_id, []).append(i)
+    cursos = []
+    for cid, lst in por_curso.items():
+        c = crud.get_curso(session=session, curso_id=cid)
+        cursos.append(CursoAvance(
+            id=cid, titulo=c.titulo if c else "Curso", inscritos=len(lst),
+            terminaron=sum(1 for i in lst if _fin(i)),
+            avance_promedio=round(sum(avance[i.id] for i in lst) / len(lst), 1),
+        ))
+    cursos.sort(key=lambda r: (-r.inscritos, r.titulo))
+
+    # Avance por alumno (todos los alumnos de la org, incluso sin inscripciones).
+    alumnos_org = [
+        u for (u, _r) in crud.list_org_users(session=session, org_id=org.id)
+        if u.rol == RolUsuario.ESTUDIANTE
+    ]
+    alumnos = []
+    for u in alumnos_org:
+        lst = [i for i in inscripciones if i.usuario_id == u.id]
+        if not lst:
+            continue
+        alumnos.append(AlumnoAvance(
+            id=u.id, nombre=u.full_name or u.email, cursos=len(lst),
+            terminados=sum(1 for i in lst if _fin(i)),
+            avance_promedio=round(sum(avance[i.id] for i in lst) / len(lst), 1),
+        ))
+    alumnos.sort(key=lambda r: (-r.avance_promedio, r.nombre))
+    return SupervisorDashboard(
+        embudo=embudo, semanas=semanas, cursos=cursos, alumnos=alumnos,
+        alumnos_sin_inscripcion=len(alumnos_org) - len(alumnos),
+    )
 
 
 @router.post("/solicitudes", response_model=SolicitudPublic, status_code=201)

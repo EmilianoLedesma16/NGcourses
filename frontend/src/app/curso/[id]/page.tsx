@@ -8,6 +8,7 @@ import { categoriasApi, cursosApi, inscripcionesApi, progresoApi, type ApiError 
 import { logError } from '@/lib/logger';
 import type { CourseInfo } from '@/types/course';
 import { toSyllabus } from '@/lib/syllabus';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiLeccion {
   id?: string;
@@ -277,9 +278,7 @@ export default function CursoInfoPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando...</span>
-      </div>
+      <BrandLoader label="Cargando" />
     );
   }
 

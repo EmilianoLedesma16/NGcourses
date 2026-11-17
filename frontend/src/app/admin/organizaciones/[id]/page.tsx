@@ -7,6 +7,7 @@ import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import { logError } from '@/lib/logger';
 import PageHeader from '@/components/admin/PageHeader';
 import styles from './page.module.css';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
 
 interface Organizacion {
   id: string;
@@ -304,7 +305,7 @@ export default function OrganizacionDetallePage() {
           <form onSubmit={handleSaveDatos} className={styles.formColumn}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Nombre</label>
-              <input type="text" required className={styles.formInput}
+              <input maxLength={255} type="text" required className={styles.formInput}
                 value={formDatos.nombre}
                 onChange={(e) => setFormDatos({ ...formDatos, nombre: e.target.value })} />
             </div>
@@ -316,9 +317,9 @@ export default function OrganizacionDetallePage() {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Teléfono</label>
-              <input type="tel" className={styles.formInput}
+              <input {...PHONE_INPUT_PROPS} className={styles.formInput}
                 value={formDatos.telefono_contacto || ''}
-                onChange={(e) => setFormDatos({ ...formDatos, telefono_contacto: e.target.value })} />
+                onChange={(e) => setFormDatos({ ...formDatos, telefono_contacto: sanitizePhone(e.target.value) })} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Plan de cursos</label>
@@ -459,7 +460,7 @@ export default function OrganizacionDetallePage() {
             </p>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Nombre completo *</label>
-              <input type="text" required className={styles.formInput}
+              <input maxLength={255} type="text" required className={styles.formInput}
                 value={supForm.full_name}
                 onChange={(e) => setSupForm({ ...supForm, full_name: e.target.value })} />
             </div>
@@ -471,9 +472,9 @@ export default function OrganizacionDetallePage() {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Teléfono</label>
-              <input type="tel" className={styles.formInput}
+              <input {...PHONE_INPUT_PROPS} className={styles.formInput}
                 value={supForm.telefono}
-                onChange={(e) => setSupForm({ ...supForm, telefono: e.target.value })} />
+                onChange={(e) => setSupForm({ ...supForm, telefono: sanitizePhone(e.target.value) })} />
             </div>
             {supError && <p className={styles.formError}>{supError}</p>}
             {supMsg && <p className={styles.formMsg}>{supMsg}</p>}

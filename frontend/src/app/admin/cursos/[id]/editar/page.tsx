@@ -11,6 +11,7 @@ import type { QuizData } from '@/types/course';
 import { validateQuiz } from '@/lib/quizValidation';
 import { logError } from '@/lib/logger';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 const API_URL = '';
 
@@ -643,12 +644,7 @@ export default function EditarCursoAdminPage() {
       )}
       <div className={styles.pageHeader}>
         <div className={styles.headerLeft}>
-          <button className={styles.returnButton} onClick={() => router.push('/admin/cursos')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver a cursos
-          </button>
+          <BackLink href="/admin/cursos">Volver a cursos</BackLink>
           <h1 className={styles.pageTitle}>Editar Curso</h1>
         </div>
         <button className={styles.previewButton} onClick={() => setShowPreview(true)}>
@@ -960,6 +956,8 @@ export default function EditarCursoAdminPage() {
                                       leccionId={lesson.id}
                                       currentBunnyVideoId={lesson.bunnyVideoId}
                                       onUploadComplete={(videoId) => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: videoId })}
+                                      onDeleted={() => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: null })}
+                                      cursoPublicado={cursoEstado === 'publicado'}
                                     />
                                   ) : lesson.tipo === 'quiz' ? (
                                     <QuizBuilder

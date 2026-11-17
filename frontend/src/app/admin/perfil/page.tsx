@@ -5,6 +5,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { authApi, cursosApi, usersApi } from '@/lib/api/client';
 import PageHeader from '@/components/admin/PageHeader';
 import styles from './page.module.css';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
+import BrandLoader from '@/components/shared/BrandLoader';
+import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
 const ROL_LABEL: Record<string, string> = {
   administrador: 'Administrador',
@@ -139,14 +142,11 @@ export default function PerfilAdminPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando...</span>
-      </div>
+      <BrandLoader label="Cargando" />
     );
   }
 
   const nombre = user?.full_name || user?.email?.split('@')[0] || 'Admin';
-  const initials = nombre.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('') || 'A';
 
   return (
     <div className={styles.pageContainer}>
@@ -159,7 +159,7 @@ export default function PerfilAdminPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt={nombre} className={styles.avatarImg} />
             ) : (
-              <div className={styles.avatarLarge}>{initials}</div>
+              <div className={styles.avatarLarge} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={user?.id ?? nombre} /></div>
             )}
             <button
               className={styles.changeAvatarBtn}
@@ -247,10 +247,10 @@ export default function PerfilAdminPage() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Teléfono</label>
                 <input
-                  type="tel"
+                  {...PHONE_INPUT_PROPS}
                   className={styles.formInput}
                   value={editForm.telefono}
-                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, telefono: sanitizePhone(e.target.value) }))}
                   placeholder="+52 55 0000 0000"
                 />
               </div>

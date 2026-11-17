@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
 import type { EstadoInvitacion, InvitacionEnvioResult } from '@/types/admin';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import ui from '@/components/admin/Panel.module.css';
 
 interface Invitacion {
   id: string;
@@ -138,147 +139,123 @@ export default function SupervisorInvitacionesPage() {
 
   const puedeEnviar = Boolean(cursoId) && emailsInput.trim().length > 0 && !sending;
 
+  const RESULT_CLS: Record<string, string> = { enviada: ui.badgeOk, ya_inscrito: ui.badgeInfo };
+  const ESTADO_CLS: Record<string, string> = { pendiente: ui.badgeWarn, usada: ui.badgeOk, expirada: '' };
+
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Invitaciones</h1>
-        <p className={styles.subtitle}>Envía invitaciones y revisa el historial</p>
-      </div>
+    <div className={ui.page}>
+      <PageHeader title="Invitaciones" subtitle="Invita a tus alumnos a un curso de tu organización y revisa el historial" />
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Enviar invitaciones</h2>
-
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="curso-select">Curso *</label>
-          <select
-            id="curso-select"
-            className={styles.select}
-            value={cursoId}
-            onChange={(e) => setCursoId(e.target.value)}
-          >
-            <option value="">-- Seleccionar curso --</option>
-            {cursos.map((c) => (
-              <option key={c.id} value={c.id}>{c.titulo}</option>
-            ))}
-          </select>
+      <section className={ui.card} aria-labelledby="inv-nueva">
+        <div className={ui.cardHead}>
+          <h2 id="inv-nueva" className={ui.cardTitle}>Enviar invitaciones</h2>
         </div>
-
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="emails-textarea">
-            Correos electrónicos{' '}
-            <span className={styles.labelHint}>(uno por línea)</span>
-          </label>
-          <textarea
-            id="emails-textarea"
-            className={styles.textarea}
-            placeholder={'alumno1@empresa.com\nalumno2@empresa.com'}
-            value={emailsInput}
-            onChange={(e) => setEmailsInput(e.target.value)}
-          />
-          <button
-            type="button"
-            className={styles.sendButton}
-            onClick={handleSend}
-            disabled={!puedeEnviar}
-          >
-            {sending ? 'Enviando...' : 'Enviar invitaciones'}
-          </button>
+        <div className={ui.form}>
+          <div className={ui.field}>
+            <label className={ui.label} htmlFor="curso-select">Curso</label>
+            <select id="curso-select" className={ui.select} value={cursoId} onChange={(e) => setCursoId(e.target.value)}>
+              <option value="">Selecciona un curso</option>
+              {cursos.map((c) => (
+                <option key={c.id} value={c.id}>{c.titulo}</option>
+              ))}
+            </select>
+          </div>
+          <div className={ui.field}>
+            <label className={ui.label} htmlFor="emails-textarea">
+              Correos <span className={ui.hint}>· uno por línea</span>
+            </label>
+            <textarea
+              id="emails-textarea"
+              className={ui.textarea}
+              placeholder={'alumno1@empresa.com\nalumno2@empresa.com'}
+              value={emailsInput}
+              onChange={(e) => setEmailsInput(e.target.value)}
+            />
+          </div>
+          <div className={ui.actions}>
+            <button type="button" className="ng-btn ng-btn-primary" onClick={handleSend} disabled={!puedeEnviar}>
+              {sending ? 'Enviando…' : 'Enviar invitaciones'}
+            </button>
+          </div>
+          {resultados.length > 0 && (
+            <ul className={ui.resultList}>
+              {resultados.map((r) => (
+                <li key={r.email}>
+                  <span className={ui.strong}>{r.email}</span>
+                  <span className={`${ui.badge} ${RESULT_CLS[r.estado] ?? ui.badgeBad}`}>
+                    {r.estado === 'enviada'
+                      ? 'Enviada'
+                      : r.estado === 'ya_inscrito'
+                        ? 'Ya inscrito'
+                        : r.estado === 'invalido'
+                          ? `Correo inválido${r.detalle ? `: ${r.detalle}` : ''}`
+                          : `Error${r.detalle ? `: ${r.detalle}` : ''}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-
-        {resultados.length > 0 && (
-          <ul className={styles.resultsList}>
-            {resultados.map((r) => (
-              <li
-                key={r.email}
-                className={`${styles.resultItem} ${
-                  r.estado === 'enviada'
-                    ? styles.resultEnviada
-                    : r.estado === 'ya_inscrito'
-                      ? styles.resultYaInscrito
-                      : styles.resultError
-                }`}
-              >
-                <span className={styles.resultEmail}>{r.email}</span>
-                <span>
-                  {r.estado === 'enviada'
-                    ? 'Enviada'
-                    : r.estado === 'ya_inscrito'
-                      ? 'Ya inscrito'
-                      : r.estado === 'invalido'
-                        ? `Correo inválido${r.detalle ? `: ${r.detalle}` : ''}`
-                        : `Error${r.detalle ? `: ${r.detalle}` : ''}`}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>
-          Historial de invitaciones{!loading && ` (${invs.length})`}
-        </h2>
-
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
+      <section aria-labelledby="inv-historial" className={ui.block}>
+        <div className={ui.cardHead}>
+          <h2 id="inv-historial" className={ui.cardTitle}>Historial</h2>
+          {!loading && <span className={ui.cardMeta}>{invs.length} {invs.length === 1 ? 'invitación' : 'invitaciones'}</span>}
+        </div>
+        <div className={ui.tableWrap}>
+          <table className={ui.table}>
             <thead>
               <tr>
-                <th>Email</th>
+                <th>Correo</th>
                 <th>Curso</th>
                 <th>Estado</th>
                 <th>Enviada</th>
                 <th>Expira</th>
-                <th>Acción</th>
+                <th aria-label="Acciones" />
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className={styles.emptyState}>Cargando...</td></tr>
-              ) : invs.length > 0 ? (
+                <tr><td colSpan={6} className={ui.empty}>Cargando…</td></tr>
+              ) : invs.length === 0 ? (
+                <tr><td colSpan={6} className={ui.empty}>Aún no has enviado invitaciones.</td></tr>
+              ) : (
                 invs.map((inv) => {
                   const msg = rowMsg?.id === inv.id ? rowMsg : null;
-                  const reenviarLabel = reenvying === inv.id
-                    ? '...'
-                    : msg
-                      ? msg.text
-                      : 'Reenviar';
                   return (
                     <tr key={inv.id}>
-                      <td>{inv.email}</td>
-                      <td>{inv.curso_titulo}</td>
+                      <td className={ui.strong}>{inv.email}</td>
+                      <td className={ui.wrapText}>{inv.curso_titulo}</td>
                       <td>
-                        <span className={`${styles.badge} ${styles[inv.estado] || ''}`}>
-                          {ESTADO_LABEL[inv.estado] || inv.estado}
-                        </span>
+                        <span className={`${ui.badge} ${ESTADO_CLS[inv.estado] ?? ''}`}>{ESTADO_LABEL[inv.estado] || inv.estado}</span>
                       </td>
-                      <td>{formatDate(inv.creado_en)}</td>
-                      <td>{formatDate(inv.expira_en)}</td>
+                      <td className={`${ui.num} ${ui.muted}`}>{formatDate(inv.creado_en)}</td>
+                      <td className={`${ui.num} ${ui.muted}`}>{formatDate(inv.expira_en)}</td>
                       <td>
-                        <div className={styles.actionCell}>
+                        <div className={ui.rowActions}>
                           <button
                             type="button"
-                            className={styles.reenviarBtn}
+                            className={ui.rowBtn}
                             disabled={inv.estado === 'usada' || reenvying === inv.id}
                             onClick={() => handleReenviar(inv.id)}
-                            title={inv.estado === 'usada' ? 'No se puede reenviar una invitación ya usada' : 'Reenviar invitación'}
+                            title={inv.estado === 'usada' ? 'Ya se usó; no se puede reenviar' : 'Reenviar invitación'}
                           >
-                            {reenviarLabel}
+                            {reenvying === inv.id ? 'Enviando…' : msg ? msg.text : 'Reenviar'}
                           </button>
                           <button
                             type="button"
-                            className={styles.revocarBtn}
+                            className={`${ui.rowBtn} ${ui.rowBtnDanger}`}
                             disabled={inv.estado !== 'pendiente' || revoking === inv.id}
                             onClick={() => handleRevocar(inv.id)}
                           >
-                            {revoking === inv.id ? '...' : 'Revocar'}
+                            {revoking === inv.id ? 'Revocando…' : 'Revocar'}
                           </button>
                         </div>
                       </td>
                     </tr>
                   );
                 })
-              ) : (
-                <tr><td colSpan={6} className={styles.emptyState}>Sin invitaciones enviadas</td></tr>
               )}
             </tbody>
           </table>

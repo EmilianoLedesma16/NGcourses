@@ -323,22 +323,8 @@
 .panelCloseBtn:hover { color: var(--color-text-primary); background: var(--color-primary-60); }
 
 .panelBackBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-secondary-30);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  padding: 0 0 0.75rem 0;
-  border-bottom: 1px solid var(--color-surface-subtle);
-  margin-bottom: 0.75rem;
-  width: 100%;
-  text-align: left;
+  margin-bottom: 0.875rem;
 }
-.panelBackBtn:hover { text-decoration: underline; }
 
 .panelList {
   list-style: none;

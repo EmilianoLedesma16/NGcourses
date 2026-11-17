@@ -69,7 +69,7 @@ export default function ProfileSetupModal({ currentEmail, onComplete }: Props) {
                 <circle cx="12" cy="8" r="4" stroke="#0B1B2B" strokeWidth="1.8" />
                 <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#0B1B2B" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              <input
+              <input maxLength={255}
                 type="text"
                 value={fullName}
                 onChange={(e) => { setFullName(e.target.value); setError(''); }}
