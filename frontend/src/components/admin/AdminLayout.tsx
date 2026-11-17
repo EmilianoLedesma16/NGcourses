@@ -14,7 +14,7 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const [headerUser, setHeaderUser] = useState<{ name: string; initials: string; role: string; avatarUrl?: string | null } | undefined>(undefined);
+  const [headerUser, setHeaderUser] = useState<{ name: string; initials: string; role: string; avatarUrl?: string | null; seed?: string } | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
@@ -29,6 +29,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       setHeaderUser({
         name,
         initials: name.slice(0, 2).toUpperCase(),
+        seed: u.id,
         role: 'Admin',
         avatarUrl: stored || null,
       });

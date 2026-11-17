@@ -1199,8 +1199,13 @@ def delete_video(
 
     try:
         bunny_svc.delete_video(db_leccion.bunny_video_id, library_id=db_curso.bunny_library_id)
-    except httpx.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"Error eliminando video de Bunny.net: {e}")
+    except httpx.HTTPStatusError as e:
+        # Si Bunny ya no lo tiene (borrado a mano en el panel), igual se limpia la
+        # lección; si no, el editor quedaría apuntando a un video inexistente.
+        if e.response.status_code != 404:
+            raise HTTPException(status_code=502, detail="No se pudo eliminar el video en Bunny.net. Intenta de nuevo.")
+    except httpx.HTTPError:
+        raise HTTPException(status_code=502, detail="No se pudo eliminar el video en Bunny.net. Intenta de nuevo.")
 
     from datetime import datetime
     db_leccion.bunny_video_id = None

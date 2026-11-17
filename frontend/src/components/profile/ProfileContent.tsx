@@ -5,6 +5,7 @@ import type { UserProfile, UserStatistics, CourseInProgress } from '@/types/cour
 import MisCompras from './MisCompras';
 import StudentUserMenu from '@/components/shared/StudentUserMenu';
 import styles from './ProfileContent.module.css';
+import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
 interface ProfileContentProps {
   profile: UserProfile;
@@ -42,7 +43,7 @@ export default function ProfileContent({ profile, statistics, coursesInProgress,
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt={profile.name} className={styles.avatarImg} />
               ) : (
-                <div className={styles.avatar}>{profile.initials}</div>
+                <div className={styles.avatar} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={profile.id || profile.email} /></div>
               )}
               {onAvatarClick && (
                 <button className={styles.changeAvatarBtn} onClick={onAvatarClick} title="Cambiar foto de perfil">

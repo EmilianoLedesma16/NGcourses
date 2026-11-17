@@ -35,6 +35,44 @@ async function getSession(
   }
 }
 
+/**
+ * El access token dura minutos; el refresh token, días. Si el navegador llega sin
+ * access token pero con refresh token (p. ej. volvió tras 20 minutos, o abrió la
+ * app al día siguiente con "Recordarme"), se renueva la sesión del lado del
+ * servidor y se repite la misma petición con las cookies nuevas, en vez de
+ * mandarlo al login.
+ */
+async function renovarSesion(request: NextRequest): Promise<NextResponse | null> {
+  if (!request.cookies.get('refresh_token')?.value) return null;
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/login/refresh-token`, {
+      method: 'POST',
+      headers: { Cookie: request.headers.get('cookie') ?? '' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const setCookies = res.headers.getSetCookie();
+    const access = setCookies.find((c) => c.startsWith('access_token='))?.split(';')[0];
+    const redirect = NextResponse.redirect(request.nextUrl);
+
+    // Cookies de rol (las lee este proxy) alineadas con la sesión renovada.
+    if (access) {
+      const session = await getSession(access);
+      if (session) {
+        const persist = request.cookies.get('session_persist')?.value === '1';
+        const opts = { path: '/', sameSite: 'strict' as const, secure: request.nextUrl.protocol === 'https:', ...(persist ? { maxAge: 60 * 60 * 24 * 30 } : {}) };
+        redirect.cookies.set('user_rol', session.rol, opts);
+        redirect.cookies.set('user_superuser', session.is_superuser ? '1' : '0', opts);
+      }
+    }
+    // Al final: cookies.set() reescribe el encabezado set-cookie completo.
+    for (const c of setCookies) redirect.headers.append('set-cookie', c);
+    return redirect;
+  } catch {
+    return null;
+  }
+}
+
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   const httpsEnabled = process.env.ENABLE_HTTPS === 'true';
@@ -85,6 +123,19 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('access_token')?.value;
+
+  // Sin access token pero con refresh token: renovar antes de decidir.
+  const protegida =
+    pathname === '/'
+    || Object.keys(ROLE_ROUTES).some((p) => pathname.startsWith(p))
+    || AUTH_ROUTES.some((p) => pathname.startsWith(p));
+  if (!token && protegida) {
+    const renovada = await renovarSesion(request);
+    if (renovada) {
+      renovada.headers.set('Content-Security-Policy', csp);
+      return renovada;
+    }
+  }
   const userRol = request.cookies.get('user_rol')?.value;
   const isSuperuser = request.cookies.get('user_superuser')?.value === '1';
 

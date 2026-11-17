@@ -3,14 +3,15 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import EmailStr
-from sqlmodel import SQLModel
+from pydantic import EmailStr, field_validator
+from sqlmodel import Field, SQLModel
 
 from app import crud
 from app.api.deps import AdminOrSuperuser, SessionDep
 from app.core.config import settings
 from app.models import User
 from app.models._enums import EstadoCurso, RolOrganizacion, RolUsuario
+from app.models._validators import RFC, Telefono, Texto255
 
 router = APIRouter(prefix="/organizaciones", tags=["organizaciones"])
 
@@ -19,27 +20,37 @@ router = APIRouter(prefix="/organizaciones", tags=["organizaciones"])
 
 
 class OrganizacionCreate(SQLModel):
-    nombre: str
+    nombre: Texto255 = Field(min_length=2)
     # Punto de contacto de la empresa: se crea como usuario SUPERVISOR (ADMIN_ORG)
     # en estado pendiente de activación. Obligatorio: toda organización tiene uno.
     supervisor_email: EmailStr
-    supervisor_nombre: str
-    email_contacto: str | None = None
-    telefono_contacto: str | None = None
-    plan_de_cursos: str | None = None
+    supervisor_nombre: Texto255 = Field(min_length=2)
+    email_contacto: EmailStr | None = None
+    telefono_contacto: Telefono = None
+    plan_de_cursos: str | None = Field(default=None, max_length=5000)
     fecha_compra: datetime | None = None
-    rfc: str | None = None
-    dominio_corporativo: str | None = None
+    rfc: RFC = None
+    dominio_corporativo: Texto255 = None
+
+    @field_validator("email_contacto", mode="before")
+    @classmethod
+    def _email_vacio(cls, v: object) -> object:
+        return None if isinstance(v, str) and not v.strip() else v
 
 
 class OrganizacionUpdate(SQLModel):
-    nombre: str | None = None
-    email_contacto: str | None = None
-    telefono_contacto: str | None = None
-    plan_de_cursos: str | None = None
+    nombre: Texto255 = Field(default=None, min_length=2)
+    email_contacto: EmailStr | None = None
+    telefono_contacto: Telefono = None
+    plan_de_cursos: str | None = Field(default=None, max_length=5000)
     fecha_compra: datetime | None = None
-    rfc: str | None = None
-    dominio_corporativo: str | None = None
+    rfc: RFC = None
+    dominio_corporativo: Texto255 = None
+
+    @field_validator("email_contacto", mode="before")
+    @classmethod
+    def _email_vacio(cls, v: object) -> object:
+        return None if isinstance(v, str) and not v.strip() else v
 
 
 class OrganizacionPublic(SQLModel):
@@ -83,8 +94,8 @@ class SupervisorSinOrgPublic(SQLModel):
 
 class CrearSupervisor(SQLModel):
     email: EmailStr
-    full_name: str
-    telefono: str | None = None
+    full_name: Texto255 = Field(min_length=2)
+    telefono: Telefono = None
 
 
 class AsignarLicencia(SQLModel):

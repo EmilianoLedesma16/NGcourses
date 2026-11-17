@@ -1,3 +1,5 @@
+import { formatApiDetail } from '@/lib/inputRules';
+
 // Rutas relativas → proxeadas por Next.js a BACKEND_URL (server-side)
 // Las cookies HttpOnly se envían automáticamente en requests same-origin (FND-003)
 const API_URL = '';
@@ -96,7 +98,7 @@ class ApiClient {
         const text = await response.text();
         try {
           const body = JSON.parse(text);
-          detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body);
+          detail = body.detail !== undefined ? formatApiDetail(body.detail) : JSON.stringify(body);
         } catch {
           detail = text || detail;
         }
@@ -154,7 +156,7 @@ class ApiClient {
         const text = await response.text();
         try {
           const body = JSON.parse(text);
-          detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body);
+          detail = body.detail !== undefined ? formatApiDetail(body.detail) : JSON.stringify(body);
         } catch {
           detail = text || detail;
         }
@@ -166,8 +168,8 @@ class ApiClient {
   }
 
   /** Login con OAuth2 form data — el backend emite cookie HttpOnly con el JWT */
-  async loginForm(email: string, password: string): Promise<import('@/lib/auth').AuthUser> {
-    const url = `${this.baseUrl}/api/v1/login/access-token`;
+  async loginForm(email: string, password: string, remember = false): Promise<import('@/lib/auth').AuthUser> {
+    const url = `${this.baseUrl}/api/v1/login/access-token${remember ? '?remember=true' : ''}`;
     const body = new URLSearchParams({ username: email, password });
 
     const response = await fetch(url, {
@@ -198,7 +200,7 @@ export const apiClient = new ApiClient(API_URL);
 // ── APIs tipadas ────────────────────────────────────────────────────────────
 
 export const authApi = {
-  login: (email: string, password: string) => apiClient.loginForm(email, password),
+  login: (email: string, password: string, remember = false) => apiClient.loginForm(email, password, remember),
   me: () => apiClient.get('/api/v1/users/me'),
 };
 
@@ -462,7 +464,7 @@ export const supervisorApi = {
   miOrganizacion: () => apiClient.get('/api/v1/supervisor/mi-organizacion'),
   cursos: () => apiClient.get('/api/v1/supervisor/cursos'),
   usuarios: () => apiClient.get('/api/v1/supervisor/usuarios'),
-  crearUsuario: (data: { email: string; password: string; full_name?: string; telefono?: string }) =>
+  crearUsuario: (data: { email: string; full_name?: string; telefono?: string }) =>
     apiClient.post('/api/v1/supervisor/usuarios', data),
   quitarUsuario: (user_id: string) => apiClient.delete(`/api/v1/supervisor/usuarios/${user_id}`),
   invitar: (data: { curso_id: string; emails: string[] }) =>
@@ -473,6 +475,7 @@ export const supervisorApi = {
   revocarInvitacion: (id: string) =>
     apiClient.delete(`/api/v1/supervisor/invitaciones/${id}`),
   stats: () => apiClient.get('/api/v1/supervisor/stats'),
+  dashboard: () => apiClient.get('/api/v1/supervisor/dashboard'),
   crearSolicitud: (data: { titulo_solicitud: string; descripcion?: string }) =>
     apiClient.post('/api/v1/supervisor/solicitudes', data),
   listarSolicitudes: () => apiClient.get('/api/v1/supervisor/solicitudes'),

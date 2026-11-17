@@ -181,6 +181,50 @@ def descargar_certificado(
     )
 
 
+@router.get("/vista-previa/{folio}")
+def vista_previa_certificado(
+    folio: str,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> FileResponse:
+    """Miniatura (WebP) de la primera página del PDF REAL del certificado (la misma
+    que se descarga). Solo el propietario o admin. Se guarda en caché junto al
+    PDF y se rehace si el PDF es más nuevo (p. ej. tras corregir el nombre)."""
+    db_cert = session.exec(select(Certificado).where(Certificado.folio == folio.upper())).first()
+    if not db_cert:
+        raise HTTPException(status_code=404, detail="Certificado no encontrado")
+    is_admin = current_user.is_superuser or current_user.rol in {RolUsuario.ADMINISTRADOR}
+    if not is_admin and db_cert.usuario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Sin acceso a este certificado")
+
+    pdf_path = CERT_DIR / f"{folio.upper()}.pdf"
+    png_path = CERT_DIR / f"{folio.upper()}.webp"
+    if not db_cert.url_pdf or not pdf_path.exists():
+        try:
+            _generar_pdf_certificado(session=session, db_cert=db_cert)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail="No se pudo generar el certificado") from exc
+
+    if not png_path.exists() or png_path.stat().st_mtime < pdf_path.stat().st_mtime:
+        try:
+            import pypdfium2 as pdfium
+
+            pdf = pdfium.PdfDocument(str(pdf_path))
+            try:
+                imagen = pdf[0].render(scale=1.25).to_pil()  # ~990 px de ancho
+            finally:
+                pdf.close()
+            imagen.save(png_path, format="WEBP", quality=82, method=6)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail="No se pudo generar la vista previa") from exc
+
+    return FileResponse(
+        path=str(png_path),
+        media_type="image/webp",
+        headers={"Cache-Control": "private, max-age=300"},
+    )
+
+
 @router.get("/verificar/{folio}", response_model=CertificadoPublic)
 def verificar_certificado(
     folio: str,

@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { cursosApi, inscripcionesApi, progresoApi } from '@/lib/api/client';
 import { normalizeQuizData } from '@/lib/quizData';
 import type { Course, Module, Lesson } from '@/types/course';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiRecurso {
   id: string;
@@ -197,9 +198,7 @@ export default function CursoVideosPage() {
 
   if (loading || redirecting) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando...</span>
-      </div>
+      <BrandLoader label="Cargando" />
     );
   }
 

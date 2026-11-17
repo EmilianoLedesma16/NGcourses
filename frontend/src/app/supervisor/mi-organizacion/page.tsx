@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import ui from '@/components/admin/Panel.module.css';
 
 interface Organizacion {
   id: string;
@@ -13,6 +14,14 @@ interface Organizacion {
   plan_de_cursos: string | null;
   fecha_compra: string | null;
 }
+
+const fecha = (iso: string | null) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 export default function MiOrganizacionPage() {
   const [org, setOrg] = useState<Organizacion | null>(null);
@@ -25,47 +34,25 @@ export default function MiOrganizacionPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (iso: string | null) => {
-    if (!iso) return '—';
-    try {
-      return new Date(iso).toLocaleDateString('es-MX');
-    } catch {
-      return '—';
-    }
-  };
-
-  if (loading) return <div className={styles.container}><p>Cargando...</p></div>;
-  if (!org) return <div className={styles.container}><p>No tienes organización asignada.</p></div>;
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Mi organización</h1>
-        <p className={styles.subtitle}>Información y plan de tu organización</p>
-      </div>
+    <div className={ui.page}>
+      <PageHeader title="Mi organización" subtitle="Datos de tu organización registrados en NextGen" />
 
-      <section className={styles.card}>
-        <div className={styles.field}>
-          <span className={styles.label}>Nombre</span>
-          <span className={styles.value}>{org.nombre}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Email de contacto</span>
-          <span className={styles.value}>{org.email_contacto || '—'}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Teléfono</span>
-          <span className={styles.value}>{org.telefono_contacto || '—'}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Plan de cursos</span>
-          <span className={styles.value}>{org.plan_de_cursos || '—'}</span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.label}>Fecha de compra</span>
-          <span className={styles.value}>{formatDate(org.fecha_compra)}</span>
-        </div>
-      </section>
+      {loading ? (
+        <p className={ui.empty}>Cargando…</p>
+      ) : !org ? (
+        <div className={`${ui.card} ${ui.empty}`}>Tu cuenta aún no tiene una organización asignada. Contacta a NextGen.</div>
+      ) : (
+        <section className={ui.card}>
+          <dl className={ui.dl}>
+            <dt>Nombre</dt><dd>{org.nombre}</dd>
+            <dt>Correo de contacto</dt><dd>{org.email_contacto || '—'}</dd>
+            <dt>Teléfono</dt><dd>{org.telefono_contacto || '—'}</dd>
+            <dt>Plan de cursos</dt><dd style={{ whiteSpace: 'pre-line' }}>{org.plan_de_cursos || '—'}</dd>
+            <dt>Fecha de compra</dt><dd>{fecha(org.fecha_compra)}</dd>
+          </dl>
+        </section>
+      )}
     </div>
   );
 }

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import ui from '@/components/admin/Panel.module.css';
 
 interface SupervisorUser {
   id: string;
@@ -17,6 +18,12 @@ interface SupervisorUser {
   cursos_inscritos: number;
 }
 
+const ESTADO: Record<string, { label: string; cls: string }> = {
+  activo: { label: 'Activo', cls: ui.badgeOk },
+  pendiente_activacion: { label: 'Pendiente de activación', cls: ui.badgeWarn },
+  suspendido: { label: 'Suspendido', cls: ui.badgeBad },
+};
+
 export default function SupervisorUsuariosPage() {
   const [users, setUsers] = useState<SupervisorUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +31,7 @@ export default function SupervisorUsuariosPage() {
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await supervisorApi.usuarios() as SupervisorUser[];
-      setUsers(data);
+      setUsers((await supervisorApi.usuarios()) as SupervisorUser[]);
     } catch (e) {
       logError('supervisor.usuarios', e);
     } finally {
@@ -37,10 +43,10 @@ export default function SupervisorUsuariosPage() {
     loadUsers();
   }, [loadUsers]);
 
-  const handleQuitar = async (user_id: string) => {
-    if (!confirm('¿Quitar este usuario de la organización?')) return;
+  const handleQuitar = async (u: SupervisorUser) => {
+    if (!confirm(`¿Quitar a ${u.full_name || u.email} de la organización? Perderá el acceso a los cursos de la organización.`)) return;
     try {
-      await supervisorApi.quitarUsuario(user_id);
+      await supervisorApi.quitarUsuario(u.id);
       loadUsers();
     } catch (e) {
       logError('supervisor.quitarUsuario', e);
@@ -48,63 +54,69 @@ export default function SupervisorUsuariosPage() {
     }
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Usuarios</h1>
-          <p className={styles.subtitle}>Usuarios de tu organización</p>
-        </div>
-      </div>
+  const alumnos = users.filter((u) => u.rol_org !== 'admin_org');
 
-      <section className={styles.card}>
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Estado</th>
-                <th>Progreso</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={5} className={styles.emptyState}>Cargando...</td></tr>
-              ) : users.length > 0 ? (
-                users.map((u) => (
+  return (
+    <div className={ui.page}>
+      <PageHeader
+        title="Usuarios"
+        subtitle={loading ? 'Alumnos de tu organización' : `${alumnos.length} ${alumnos.length === 1 ? 'alumno' : 'alumnos'} en tu organización`}
+      />
+
+      <div className={ui.tableWrap}>
+        <table className={ui.table}>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Estado</th>
+              <th>Cursos</th>
+              <th>Avance</th>
+              <th aria-label="Acciones" />
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={6} className={ui.empty}>Cargando…</td></tr>
+            ) : users.length === 0 ? (
+              <tr><td colSpan={6} className={ui.empty}>Aún no hay usuarios en tu organización.</td></tr>
+            ) : (
+              users.map((u) => {
+                const est = ESTADO[u.estado] ?? { label: u.estado, cls: '' };
+                const esSupervisor = u.rol_org === 'admin_org';
+                const pct = Math.round(u.progreso_promedio);
+                return (
                   <tr key={u.id}>
-                    <td className={styles.nameCell}>{u.full_name || '—'}</td>
-                    <td>{u.email}</td>
+                    <td className={ui.strong}>{u.full_name || '—'}</td>
+                    <td className={ui.muted}>{u.email}</td>
+                    <td><span className={`${ui.badge} ${est.cls}`}>{est.label}</span></td>
+                    <td className={ui.num}>{esSupervisor ? '—' : u.cursos_inscritos}</td>
                     <td>
-                      <span className={`${styles.statusText} ${u.estado === 'activo' ? styles.active : styles.inactive}`}>
-                        {u.estado === 'pendiente_activacion'
-                          ? 'Pendiente de activación'
-                          : u.estado === 'activo'
-                            ? 'Activo'
-                            : 'Suspendido'}
-                      </span>
-                    </td>
-                    <td><span className={styles.mobileLabel}>Progreso: </span>{Math.round(u.progreso_promedio)}%</td>
-                    <td>
-                      {u.rol_org === 'admin_org' ? (
-                        <span className={styles.statusText}>Supervisor</span>
+                      {esSupervisor ? (
+                        <span className={ui.muted}>—</span>
                       ) : (
-                        <button className={styles.deleteButton} onClick={() => handleQuitar(u.id)}>
+                        <span className={ui.progress} aria-label={`Avance ${pct}%`}>
+                          <span><i style={{ width: `${pct}%` }} /></span>
+                          {pct}%
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {esSupervisor ? (
+                        <span className={`${ui.badge} ${ui.badgeInfo}`}>Supervisor</span>
+                      ) : (
+                        <button type="button" className={`${ui.rowBtn} ${ui.rowBtnDanger}`} onClick={() => handleQuitar(u)}>
                           Quitar
                         </button>
                       )}
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr><td colSpan={5} className={styles.emptyState}>Sin usuarios en tu organización</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/auth';
 import styles from './InstructorHeader.module.css';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
 interface InstructorHeaderProps {
   user?: {
@@ -13,6 +14,7 @@ interface InstructorHeaderProps {
     initials: string;
     role: string;
     avatarUrl?: string | null;
+    seed?: string;
   };
   onMenuClick?: () => void;
 }
@@ -70,7 +72,7 @@ export const InstructorHeader: React.FC<InstructorHeaderProps> = ({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatarUrl} alt={user.name} className={styles.userAvatarImg} />
             ) : (
-              <div className={styles.userAvatar}>{user.initials}</div>
+              <div className={styles.userAvatar} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={user.seed ?? user.name} /></div>
             )}
             <div className={styles.userInfo}>
               {!user ? (

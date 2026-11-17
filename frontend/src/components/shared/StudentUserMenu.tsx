@@ -8,6 +8,7 @@ import { getCurrentUser, logout } from '@/lib/auth';
 import { logError } from '@/lib/logger';
 import styles from './StudentUserMenu.module.css';
 import ThemeToggle from './ThemeToggle';
+import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
 interface MenuUser {
   id: string;
@@ -66,7 +67,7 @@ export default function StudentUserMenu() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatarUrl} alt={user.name} className={styles.userAvatarImg} />
         ) : (
-          <div className={styles.userAvatar}>{user.initials}</div>
+          <div className={styles.userAvatar} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={user.id} /></div>
         )}
         <span className={styles.userName}>{user.name}</span>
         <svg

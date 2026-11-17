@@ -32,6 +32,15 @@ function isFreeNextgen(c: CourseCardType): boolean {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+/** Cursos reales detrás de una tarjeta: un curso global cuenta por los cursos que
+ *  incluye (igual que su botón "Inscribirme a los N" y que "Mis cursos"). */
+const cursosEn = (c: CourseCardType) => (c.tipo === 'global' ? c.subcursosTotal ?? 0 : 1);
+const pendientesEn = (c: CourseCardType) => {
+  if (c.bloqueadoPorLicencia) return 0;
+  if (c.tipo === 'global') return Math.max(0, (c.subcursosTotal ?? 0) - (c.subcursosInscritos ?? 0));
+  return c.enrolled ? 0 : 1;
+};
+
 export default function CoursesContent({ courses, user, orgName, activeCount = 0 }: CoursesContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
@@ -157,9 +166,9 @@ export default function CoursesContent({ courses, user, orgName, activeCount = 0
                   <h2 id={`group-${group.key}`} className={styles.sectionTitle}>{group.title}</h2>
                   <span className={styles.sectionCount}>
                     {group.note ? `${group.note} · ` : ''}
-                    {plural(group.items.length, 'curso', 'cursos')}
+                    {plural(group.items.reduce((n, c) => n + cursosEn(c), 0), 'curso', 'cursos')}
                     {(() => {
-                      const pendientes = group.items.filter((c) => !c.enrolled && !c.bloqueadoPorLicencia).length;
+                      const pendientes = group.items.reduce((n, c) => n + pendientesEn(c), 0);
                       return pendientes > 0 ? ` · ${pendientes} por inscribir` : '';
                     })()}
                   </span>

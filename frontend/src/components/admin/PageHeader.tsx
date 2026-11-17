@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import styles from './PageHeader.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 interface PageHeaderProps {
   title: string;
@@ -21,12 +21,9 @@ export default function PageHeader({ title, subtitle, actions, back }: PageHeade
     <header className={styles.header}>
       <div className={styles.text}>
         {back && (
-          <Link href={back.href} className={styles.back}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {back.label}
-          </Link>
+          <BackLink href={back.href} className={styles.back}>
+            Volver a {back.label.toLowerCase()}
+          </BackLink>
         )}
         <h1 className={styles.title}>{title}</h1>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}

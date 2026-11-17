@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supervisorApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
-import styles from './page.module.css';
+import PageHeader from '@/components/admin/PageHeader';
+import { Actividad, Embudo, Kpis, Ranking, n, type EmbudoData, type SemanaData } from '@/components/dashboard/Charts';
+import styles from '@/components/dashboard/Dashboard.module.css';
 
 interface Stats {
   usuarios_totales: number;
@@ -14,63 +16,83 @@ interface Stats {
   inscripciones_totales: number;
 }
 
+interface Dashboard {
+  embudo: EmbudoData;
+  semanas: SemanaData[];
+  cursos: { id: string; titulo: string; inscritos: number; terminaron: number; avance_promedio: number }[];
+  alumnos: { id: string; nombre: string; cursos: number; terminados: number; avance_promedio: number }[];
+  alumnos_sin_inscripcion: number;
+}
+
 export default function SupervisorDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dash, setDash] = useState<Dashboard | null>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    supervisorApi.stats()
-      .then((s) => setStats(s as Stats))
-      .catch((e) => logError('supervisor.stats', e))
-      .finally(() => setLoading(false));
+    Promise.all([
+      supervisorApi.stats() as Promise<Stats>,
+      supervisorApi.dashboard() as Promise<Dashboard>,
+    ])
+      .then(([s, d]) => { setStats(s); setDash(d); })
+      .catch((e) => { logError('supervisor.dashboard', e); setError(true); });
+    (supervisorApi.miOrganizacion() as Promise<{ nombre: string }>)
+      .then((o) => setOrgName(o.nombre))
+      .catch(() => {});
   }, []);
+
+  const sinCursos = dash?.alumnos_sin_inscripcion ?? 0;
 
   return (
     <div className={styles.dashboard}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Panel del supervisor</h1>
-        <p className={styles.subtitle}>
-          Gestiona los usuarios y los cursos asignados a tu organización.
-        </p>
-      </div>
+      <PageHeader
+        title="Inicio"
+        subtitle={orgName ?? 'Avance de tu organización'}
+        actions={<Link href="/supervisor/invitaciones" className="ng-btn ng-btn-primary">Invitar alumnos</Link>}
+      />
 
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Usuarios totales</p>
-          <p className={styles.statValue}>{loading ? '—' : stats?.usuarios_totales ?? 0}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Usuarios activos</p>
-          <p className={styles.statValue}>{loading ? '—' : stats?.usuarios_activos ?? 0}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Progreso promedio</p>
-          <p className={styles.statValue}>{loading ? '—' : `${Math.round(stats?.progreso_promedio ?? 0)}%`}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Cursos asignados</p>
-          <p className={styles.statValue}>{loading ? '—' : stats?.cursos_disponibles ?? 0}</p>
-        </div>
-      </div>
+      {error && <p className={styles.empty}>No se pudieron cargar las cifras. Recarga la página.</p>}
+      {!dash && !error && <div className={styles.skeleton} aria-busy="true" aria-label="Cargando cifras" />}
 
-      <div className={styles.optionsGrid}>
-        <Link href="/supervisor/usuarios" className={styles.optionCard}>
-          <h2 className={styles.optionTitle}>Gestionar usuarios</h2>
-          <p className={styles.optionDescription}>Da de alta o invita usuarios de tu organización.</p>
-        </Link>
-        <Link href="/supervisor/cursos" className={styles.optionCard}>
-          <h2 className={styles.optionTitle}>Ver cursos</h2>
-          <p className={styles.optionDescription}>Cursos con licencia activa para tu organización.</p>
-        </Link>
-        <Link href="/supervisor/invitaciones" className={styles.optionCard}>
-          <h2 className={styles.optionTitle}>Invitaciones</h2>
-          <p className={styles.optionDescription}>Historial de invitaciones enviadas y su estado.</p>
-        </Link>
-        <Link href="/supervisor/solicitudes" className={styles.optionCard}>
-          <h2 className={styles.optionTitle}>Solicitar cursos</h2>
-          <p className={styles.optionDescription}>Pide nuevos cursos a NextGen para tu organización.</p>
-        </Link>
-      </div>
+      {stats && dash && (
+        <>
+          <Kpis
+            items={[
+              { label: 'Alumnos', value: n(stats.usuarios_totales), hint: `${n(stats.usuarios_activos)} con cuenta activa` },
+              { label: 'Cursos asignados', value: n(stats.cursos_disponibles) },
+              { label: 'Inscripciones', value: n(stats.inscripciones_totales) },
+              { label: 'Avance promedio', value: `${Math.round(stats.progreso_promedio)}%` },
+            ]}
+          />
+          <Embudo e={dash.embudo} sub={`${n(dash.embudo.inscritos)} inscripciones en los cursos de tu organización`} />
+          <div className={styles.rowEven}>
+            <Actividad semanas={dash.semanas} />
+            <Ranking
+              title="Avance por curso" id="avance-cursos" href="/supervisor/cursos"
+              empty="Tus alumnos aún no se inscriben a ningún curso."
+              rows={dash.cursos.map((c) => ({
+                key: c.id, name: c.titulo, avance: c.avance_promedio,
+                meta: `${n(c.inscritos)} ${c.inscritos === 1 ? 'alumno' : 'alumnos'} · ${n(c.terminaron)} terminaron`,
+              }))}
+            />
+          </div>
+          <Ranking
+            title="Avance por alumno" id="avance-alumnos" href="/supervisor/usuarios"
+            empty="Todavía no hay alumnos inscritos."
+            rows={dash.alumnos.map((a) => ({
+              key: a.id, name: a.nombre, avance: a.avance_promedio,
+              meta: `${n(a.cursos)} ${a.cursos === 1 ? 'curso' : 'cursos'} · ${n(a.terminados)} terminados`,
+            }))}
+          />
+          {sinCursos > 0 && (
+            <p className={styles.empty} style={{ margin: 0 }}>
+              {sinCursos === 1 ? '1 alumno aún no se inscribe' : `${sinCursos} alumnos aún no se inscriben`} a ningún curso.{' '}
+              <Link href="/supervisor/invitaciones" className={styles.link}>Enviar invitaciones</Link>
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }

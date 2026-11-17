@@ -11,6 +11,7 @@ import type { QuizData } from '@/types/course';
 import { validateQuiz } from '@/lib/quizValidation';
 import { logError } from '@/lib/logger';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 function slugify(text: string): string {
   return (
@@ -552,12 +553,7 @@ export default function CrearCursoPage() {
       )}
       <div className={styles.pageHeader}>
         <div className={styles.headerLeft}>
-          <button className={styles.returnButton} onClick={() => router.push('/admin/cursos')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver a cursos
-          </button>
+          <BackLink href="/admin/cursos">Volver a cursos</BackLink>
           <h1 className={styles.pageTitle}>Crear Nuevo Curso</h1>
         </div>
         <button className={styles.previewButton} onClick={() => setShowPreview(true)}>
@@ -919,6 +915,7 @@ export default function CrearCursoPage() {
                                       leccionId={lesson.id}
                                       currentBunnyVideoId={lesson.bunnyVideoId}
                                       onUploadComplete={(videoId) => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: videoId })}
+                                      onDeleted={() => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: null })}
                                     />
                                   ) : lesson.tipo === 'quiz' ? (
                                     <QuizBuilder

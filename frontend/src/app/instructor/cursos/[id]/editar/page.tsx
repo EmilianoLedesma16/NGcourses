@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { cursosApi, categoriasApi } from '@/lib/api/client';
 import VideoUploadButton from '@/components/video/VideoUploadButton';
 import LessonTypeSelector from '@/components/course/LessonTypeSelector';
@@ -11,6 +11,7 @@ import type { QuizData } from '@/types/course';
 import { validateQuiz } from '@/lib/quizValidation';
 import { logError } from '@/lib/logger';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 interface ApiCategoria { id: string; nombre: string }
 
@@ -94,7 +95,6 @@ const STEPS = [
 ];
 
 export default function EditarCursoInstructorPage() {
-  const router = useRouter();
   const params = useParams();
   const courseId = params.id as string;
 
@@ -535,12 +535,7 @@ export default function EditarCursoInstructorPage() {
 
       <div className={styles.pageHeader}>
         <div className={styles.headerLeft}>
-          <button className={styles.returnButton} onClick={() => router.push('/instructor/cursos')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Volver a cursos
-          </button>
+          <BackLink href="/instructor/cursos">Volver a cursos</BackLink>
           <h1 className={styles.pageTitle}>Editar Curso</h1>
         </div>
       </div>
@@ -883,6 +878,8 @@ export default function EditarCursoInstructorPage() {
                                       leccionId={lesson.id}
                                       currentBunnyVideoId={lesson.bunnyVideoId}
                                       onUploadComplete={(videoId) => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: videoId })}
+                                      onDeleted={() => updateLessonLocal(module.id, lesson.id, { bunnyVideoId: null })}
+                                      cursoPublicado={cursoEstado === 'publicado'}
                                     />
                                   ) : lesson.tipo === 'quiz' ? (
                                     <QuizBuilder

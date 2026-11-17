@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cursosApi } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 interface ApiCurso {
   id: string;
@@ -20,7 +20,6 @@ interface ApiCursosResp {
 }
 
 export default function InstructorCursosPage() {
-  const router = useRouter();
   const [cursos, setCursos] = useState<ApiCurso[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,14 +44,7 @@ export default function InstructorCursosPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.headerBar}>
-        <button className={styles.backButton} onClick={() => router.push('/instructor')}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 10.5 12 3l9 7.5" />
-            <path d="M5 10v10h14V10" />
-            <path d="M9 20v-6h6v6" />
-          </svg>
-          Volver al dashboard
-        </button>
+        <BackLink href="/instructor">Volver al dashboard</BackLink>
         <Link href="/instructor/cursos/crear" className={styles.createButton}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12h14" />

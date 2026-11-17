@@ -6,6 +6,8 @@ import CourseInfoContent from '@/components/course/CourseInfoContent';
 import { cursosApi } from '@/lib/api/client';
 import type { CourseInfo } from '@/types/course';
 import { toSyllabus } from '@/lib/syllabus';
+import BackLink from '@/components/shared/BackLink';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiLeccion {
   titulo?: string;
@@ -125,9 +127,7 @@ export default function AdminCursoPreviewPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando...</span>
-      </div>
+      <BrandLoader label="Cargando" />
     );
   }
 
@@ -148,25 +148,7 @@ export default function AdminCursoPreviewPage() {
         flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button
-            onClick={() => router.push('/admin/solicitudes')}
-            style={{
-              background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.4)',
-              color: '#fff',
-              borderRadius: '0.4rem',
-              padding: '0.4rem 0.9rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-            Volver a solicitudes
-          </button>
+          <BackLink tone="onDark" href="/admin/solicitudes">Volver a solicitudes</BackLink>
           <span style={{ fontSize: '0.9rem', opacity: 0.85 }}>
             Vista previa del curso &mdash; tal como lo ve el alumno
           </span>

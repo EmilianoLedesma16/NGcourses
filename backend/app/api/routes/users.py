@@ -16,8 +16,8 @@ from app.api.deps import (
     require_admin_or_superuser,
 )
 from app.api.routes.cursos import ALLOWED_IMAGE_TYPES, _check_magic_image
-from app.core.limiter import limiter
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.core.security import get_password_hash, hash_token, verify_password
 from app.models import (
     Item,
@@ -34,6 +34,7 @@ from app.models import (
 from app.models._enums import EstadoUsuario, RolOrganizacion, RolUsuario
 from app.models.organizacion import Organizacion, UsuarioOrganizacion
 from app.models.sistema import RefreshToken
+from app.models.user import UserAltaAdmin
 from app.utils import generate_activacion_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -77,7 +78,7 @@ def read_users(
 
 
 @router.post("/", response_model=UserPublic)
-def create_user(*, session: SessionDep, user_in: UserCreate, current_user: AdminOrSuperuser) -> Any:
+def create_user(*, session: SessionDep, user_in: UserAltaAdmin, current_user: AdminOrSuperuser) -> Any:
     """
     Create new user.
     """
@@ -113,7 +114,12 @@ def create_user(*, session: SessionDep, user_in: UserCreate, current_user: Admin
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    # Sin contraseña en el alta: se guarda un valor aleatorio que nadie conoce
+    # (la columna no admite nulos) y el usuario crea la suya al activar.
+    user = crud.create_user(
+        session=session,
+        user_create=UserCreate(**user_in.model_dump(), password=secrets.token_urlsafe(24)),
+    )
 
     # Toda cuenta nueva nace pendiente de activación: el usuario establece su
     # propia contraseña por el enlace del correo (/activar). La contraseña NO se

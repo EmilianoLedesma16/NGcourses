@@ -6,6 +6,7 @@ import CourseCover from '@/components/shared/CourseCover';
 import StudentHeader from '@/components/shared/StudentHeader';
 import styles from './CourseInfoContent.module.css';
 import own from './GlobalCourseContent.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 /** Un curso dentro del curso global, con el avance del alumno (GET /cursos/{id}). */
 export interface Subcurso {
@@ -89,6 +90,9 @@ export default function GlobalCourseContent({
   // El siguiente curso: el primero inscrito que no está terminado.
   const nextIndex = enrolled ? subs.findIndex((s) => s.inscrito && !s.completado) : -1;
   const next = nextIndex >= 0 ? subs[nextIndex] : null;
+  // Cursos que se agregaron al global después de que el alumno se inscribió.
+  const nuevos = enrolled ? subs.filter((s) => !s.inscrito).length : 0;
+  const puedeSumarNuevos = nuevos > 0 && course.puedeInscribirse !== false && Boolean(onInscribirse);
   const started = course.leccionesCompletadas > 0;
   const pct = course.leccionesTotal > 0
     ? Math.round((course.leccionesCompletadas / course.leccionesTotal) * 100)
@@ -149,10 +153,23 @@ export default function GlobalCourseContent({
               {ArrowIcon}
             </Link>
           </>
-        ) : (
+        ) : nuevos === 0 ? (
           <p className={styles.nextUp}>
             Terminaste todos los cursos de {cleanTitle(course.titulo)}.
           </p>
+        ) : null}
+        {puedeSumarNuevos && (
+          <div className={own.nuevos} role="status">
+            <p>
+              {nuevos === 1
+                ? 'Se agregó 1 curso nuevo a este programa.'
+                : `Se agregaron ${nuevos} cursos nuevos a este programa.`}
+            </p>
+            <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onInscribirse} disabled={enrollLoading}>
+              {enrollLoading ? 'Inscribiendo…' : nuevos === 1 ? 'Inscribirme al curso nuevo' : `Inscribirme a los ${nuevos} nuevos`}
+            </button>
+            {enrollError && <p className={own.error} role="alert">{enrollError}</p>}
+          </div>
         )}
       </>
     );
@@ -221,10 +238,7 @@ export default function GlobalCourseContent({
             )}
           </nav>
         ) : (
-          <Link href={backHref} className={styles.backLink}>
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            Volver
-          </Link>
+          <BackLink href={backHref} className={styles.backLink}>Volver</BackLink>
         )}
 
         <div className={styles.layout}>

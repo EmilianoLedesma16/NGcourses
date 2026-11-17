@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import styles from '../page.module.css';
+import { useState } from 'react';
 import { ForgotPasswordSchema } from '@/schemas/auth';
+import AuthShell from '@/components/auth/AuthShell';
+import { EmailField } from '@/components/auth/AuthFields';
+import auth from '@/components/auth/AuthShell.module.css';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -43,112 +45,38 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  if (sent) {
+    return (
+      <AuthShell
+        status="success"
+        title="Revisa tu correo"
+        subtitle="Si ese correo está registrado, recibirás en unos minutos un enlace para restablecer tu contraseña. Revisa también la carpeta de spam."
+      >
+        <Link href="/" className={auth.submit}>Ir al inicio de sesión</Link>
+      </AuthShell>
+    );
+  }
+
   return (
-    // Pantalla pública de auth: siempre en tema claro, como el login.
-    <div data-theme="light" style={{
-      minHeight: '100vh',
-      background: 'radial-gradient(1100px 700px at 12% 18%, rgba(61,193,204,.30) 0%, rgba(242,242,242,0) 60%), radial-gradient(900px 650px at 86% 22%, rgba(0,150,143,.20) 0%, rgba(242,242,242,0) 58%), linear-gradient(180deg, var(--color-surface) 0%, #F2F2F2 100%)',
-      display: 'grid',
-      placeItems: 'center',
-      padding: '28px 16px 70px',
-    }}>
-      <div style={{
-        width: 'min(440px, 92%)',
-        background: 'rgba(255,255,255,.86)',
-        border: '1px solid rgba(0,150,143,.12)',
-        borderRadius: '20px',
-        boxShadow: '0 18px 55px rgba(11,27,43,.12)',
-        padding: '36px',
-        backdropFilter: 'blur(10px)',
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo.png" alt="NextGen" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-          <span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--color-text-heading)', letterSpacing: '-0.2px' }}>
-            NextGen <span style={{ fontWeight: 400 }}>Course</span>
-          </span>
-        </div>
-
-        {sent ? (
-          <div>
-            <h2 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 700, color: 'var(--color-text-heading)' }}>
-              Revisa tu correo
-            </h2>
-            <p style={{ margin: '0 0 24px', color: 'var(--color-text-muted)', fontSize: '15px', lineHeight: 1.5 }}>
-              Si ese correo está registrado, recibirás un enlace para restablecer tu contraseña en los próximos minutos.
-            </p>
-            <Link href="/" style={{ color: '#00968f', fontSize: '14px', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 3l9 7.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M5 10v10h14V10" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 20v-6h6v6" /></svg>
-              Volver al inicio de sesión
-            </Link>
-          </div>
-        ) : (
-          <>
-            <h2 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 700, color: 'var(--color-text-heading)' }}>
-              ¿Olvidaste tu contraseña?
-            </h2>
-            <p style={{ margin: '0 0 24px', color: 'var(--color-text-muted)', fontSize: '15px' }}>
-              Ingresa tu correo y te enviaremos un enlace para restablecerla.
-            </p>
-
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '14px', color: 'var(--color-text-body)' }}>Correo</label>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  borderRadius: '14px', background: 'var(--color-surface)',
-                  border: '1px solid rgba(0,150,143,.16)',
-                  padding: '14px 16px',
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.7, flexShrink: 0 }}>
-                    <path d="M4 6h16v12H4V6Z" stroke="#0B1B2B" strokeWidth="1.8" strokeLinejoin="round"/>
-                    <path d="m4 7 8 6 8-6" stroke="#0B1B2B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <input
-                    type="email"
-                    placeholder="tu@usuario.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    style={{ border: 0, outline: 0, width: '100%', fontSize: '15px', background: 'transparent', color: 'var(--color-text-heading)' }}
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <p style={{ color: 'var(--color-error)', fontSize: '0.875rem', margin: 0 }}>{error}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  border: 0, width: '100%', padding: '14px 16px', borderRadius: '14px',
-                  fontWeight: 800, color: 'white', background: 'var(--color-accent-10)',
-                  cursor: loading ? 'not-allowed' : 'pointer', fontSize: '1.0625rem',
-                  opacity: loading ? 0.7 : 1,
-                }}
-              >
-                {loading ? 'Enviando...' : 'Enviar enlace'}
-              </button>
-            </form>
-
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <Link href="/" style={{ color: '#00968f', fontSize: '14px', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 3l9 7.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M5 10v10h14V10" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 20v-6h6v6" /></svg>
-                Volver al inicio de sesión
-              </Link>
-            </div>
-          </>
-        )}
-      </div>
-
-      <div style={{
-        position: 'fixed', left: 0, right: 0, bottom: 0, height: '46px',
-        background: 'linear-gradient(90deg, #b2e8e6 0%, #3DC1CC 45%, #00968f 75%, #006b66 100%)',
-        opacity: 0.95,
-      }} />
-    </div>
+    <AuthShell
+      title="¿Olvidaste tu contraseña?"
+      subtitle="Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva."
+    >
+      <form onSubmit={handleSubmit} className={auth.form} noValidate>
+        <EmailField
+          id="fp-email"
+          label="Correo"
+          placeholder="tu@empresa.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoFocus
+        />
+        {error && <p className={auth.error} role="alert">{error}</p>}
+        <button type="submit" className={auth.submit} disabled={loading}>
+          {loading ? 'Enviando…' : 'Enviar enlace'}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

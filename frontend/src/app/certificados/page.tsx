@@ -7,6 +7,7 @@ import CertificatesContent, {
 } from '@/components/certificates/CertificatesContent';
 import { certificadosApi, cursosApi, inscripcionesApi, progresoApi } from '@/lib/api/client';
 import { getCurrentUser } from '@/lib/auth';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiCertificado {
   curso_id: string;
@@ -118,9 +119,7 @@ export default function CertificadosPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando certificados...</span>
-      </div>
+      <BrandLoader label="Cargando certificados" />
     );
   }
 

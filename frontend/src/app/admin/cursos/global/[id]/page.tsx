@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { cursosApi, type ApiError } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
 import list from '../../page.module.css';
 import styles from './page.module.css';
+import BackLink from '@/components/shared/BackLink';
 
 /**
  * Alta y edición de un curso global: un curso sin módulos que agrupa cursos
@@ -217,7 +217,7 @@ export default function CursoGlobalPage() {
     <div className={list.page}>
       <header className={list.header}>
         <div>
-          <Link href="/admin/cursos" className={styles.back}>Cursos</Link>
+          <BackLink href="/admin/cursos" className={styles.back}>Volver a cursos</BackLink>
           <h1 className={list.title}>{esNuevo && !cursoId ? 'Nuevo curso global' : titulo || 'Curso global'}</h1>
           <p className={list.subtitle}>
             Curso global · {STATUS_LABEL[estado] ?? estado} · {seleccion.length} {seleccion.length === 1 ? 'curso' : 'cursos'}
@@ -231,7 +231,7 @@ export default function CursoGlobalPage() {
             <h2 id="info-title" className={styles.cardTitle}>Información básica</h2>
             <label className={styles.field}>
               <span>Título</span>
-              <input className={styles.input} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Por ejemplo: Testeo" />
+              <input maxLength={255} className={styles.input} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Por ejemplo: Testeo" />
             </label>
             <label className={styles.field}>
               <span>Descripción</span>

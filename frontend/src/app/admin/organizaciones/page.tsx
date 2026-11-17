@@ -7,6 +7,7 @@ import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import { logError } from '@/lib/logger';
 import PageHeader from '@/components/admin/PageHeader';
 import styles from './page.module.css';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
 
 interface Organizacion {
   id: string;
@@ -342,7 +343,7 @@ export default function OrganizacionesPage() {
             <form onSubmit={handleCreate} className={styles.modalForm}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Nombre *</label>
-                <input
+                <input maxLength={255}
                   type="text"
                   required
                   value={createForm.nombre}
@@ -353,7 +354,7 @@ export default function OrganizacionesPage() {
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Nombre del supervisor *</label>
-                <input
+                <input maxLength={255}
                   type="text"
                   required
                   value={createForm.supervisor_nombre}
@@ -392,9 +393,9 @@ export default function OrganizacionesPage() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Teléfono</label>
                 <input
-                  type="tel"
+                  {...PHONE_INPUT_PROPS}
                   value={createForm.telefono_contacto}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, telefono_contacto: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, telefono_contacto: sanitizePhone(e.target.value) }))}
                   className={styles.formInput}
                   placeholder="+52 55 0000 0000"
                 />

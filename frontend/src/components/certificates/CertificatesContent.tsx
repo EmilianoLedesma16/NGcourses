@@ -44,6 +44,8 @@ export default function CertificatesContent({ studentName, certificates, upcomin
   const [downloading, setDownloading] = useState<string | null>(null);
   // Mensaje por folio (resultado de descargar o copiar), mostrado bajo la tarjeta.
   const [messages, setMessages] = useState<Record<string, string>>({});
+  // Folios cuya miniatura real no cargó: se muestra la hoja dibujada como respaldo.
+  const [sinPreview, setSinPreview] = useState<Set<string>>(new Set());
 
   const setMessage = (folio: string, text: string) =>
     setMessages((prev) => ({ ...prev, [folio]: text }));
@@ -94,7 +96,24 @@ export default function CertificatesContent({ studentName, certificates, upcomin
               const isDownloading = downloading === cert.folio;
               return (
                 <article key={cert.folio} className={styles.card}>
-                  {/* Vista previa del documento: hoja apaisada con marco fino, como el PDF. */}
+                  {/* Miniatura del PDF real (misma imagen que se descarga). */}
+                  {!sinPreview.has(cert.folio) ? (
+                    <button
+                      type="button"
+                      className={styles.preview}
+                      onClick={() => { if (!cert.pending) handleDownload(cert.folio); }}
+                      disabled={cert.pending}
+                      title={cert.pending ? undefined : 'Descargar PDF'}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/api/v1/certificados/vista-previa/${encodeURIComponent(cert.folio)}`}
+                        alt={`Certificado de ${title}`}
+                        loading="lazy"
+                        onError={() => setSinPreview((s) => new Set(s).add(cert.folio))}
+                      />
+                    </button>
+                  ) : (
                   <div className={styles.sheet} aria-hidden="true">
                     <div className={styles.sheetInner}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -107,6 +126,7 @@ export default function CertificatesContent({ studentName, certificates, upcomin
                       </span>
                     </div>
                   </div>
+                  )}
 
                   <div className={styles.info}>
                     <h2 className={styles.cardTitle}>

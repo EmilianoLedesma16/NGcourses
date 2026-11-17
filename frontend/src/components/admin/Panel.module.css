@@ -1,0 +1,436 @@
+/* Piezas comunes de las pantallas de panel (supervisor, y reutilizable en admin):
+   mismo lenguaje que Admin → Usuarios / Cursos: superficies planas, borde fino,
+   radios de 0.75rem, encabezados de tabla discretos y un solo verde para la
+   acción principal. */
+
+.page {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.page > header {
+  margin-bottom: 0.25rem;
+}
+
+.card {
+  padding: 1.25rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+}
+
+.cardMeta {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Formularios ─────────────────────────────────────────────────────── */
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 40rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-body);
+}
+
+.hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text-body);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.textarea {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-faint);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary-30);
+  box-shadow: 0 0 0 3px rgba(0, 150, 143, 0.12);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.msgOk,
+.msgError {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.msgOk { color: var(--color-accent-10); }
+.msgError { color: var(--color-error); }
+
+/* ── Tablas ──────────────────────────────────────────────────────────── */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.card .tableWrap {
+  border-radius: 0.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-default);
+  color: var(--color-text-body);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background: var(--color-table-row-hover);
+}
+
+.strong {
+  font-weight: 500;
+  color: var(--color-text-heading);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wrapText {
+  max-width: 18rem;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Barra de avance en tabla */
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress span {
+  flex: 1;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+}
+
+.progress span i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-secondary-30);
+}
+
+/* ── Insignias ───────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.badgeOk { color: #15803d; background: rgba(34, 197, 94, 0.1); }
+.badgeWarn { color: #b45309; background: rgba(245, 158, 11, 0.12); }
+.badgeBad { color: #b91c1c; background: rgba(239, 68, 68, 0.1); }
+.badgeInfo { color: #0f766e; background: rgba(0, 150, 143, 0.1); }
+
+[data-theme='dark'] .badgeOk { color: #4ade80; }
+[data-theme='dark'] .badgeWarn { color: #fbbf24; }
+[data-theme='dark'] .badgeBad { color: #f87171; }
+[data-theme='dark'] .badgeInfo { color: #5eead4; }
+
+/* ── Botones pequeños de fila ────────────────────────────────────────── */
+.rowBtn {
+  height: 1.875rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.375rem;
+  background: var(--color-surface);
+  color: var(--color-text-body);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rowBtn:hover:not(:disabled) {
+  border-color: var(--color-text-faint);
+  color: var(--color-text-heading);
+}
+
+.rowBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rowBtnDanger {
+  color: #b91c1c;
+}
+
+.rowBtnDanger:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: rgba(239, 68, 68, 0.06);
+  color: #b91c1c;
+}
+
+[data-theme='dark'] .rowBtnDanger { color: #f87171; }
+
+.rowActions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+/* ── Lista de definición (datos de la organización) ──────────────────── */
+.dl {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  margin: 0;
+}
+
+.dl dt,
+.dl dd {
+  margin: 0;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border-default);
+  font-size: 0.875rem;
+}
+
+.dl dt {
+  color: var(--color-text-muted);
+}
+
+.dl dd {
+  color: var(--color-text-heading);
+  overflow-wrap: anywhere;
+}
+
+.dl dt:last-of-type,
+.dl dd:last-of-type {
+  border-bottom: none;
+}
+
+@media (max-width: 640px) {
+  .dl {
+    grid-template-columns: 1fr;
+  }
+
+  .dl dt {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .dl dd {
+    padding-top: 0.125rem;
+  }
+}
+
+/* ── Rejilla de tarjetas (cursos) ────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.tile:hover {
+  border-color: var(--color-secondary-30);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--color-secondary-30);
+  outline-offset: 2px;
+}
+
+.tileTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-heading);
+}
+
+.tileText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tileFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.tileFoot b {
+  font-weight: 500;
+  color: var(--color-secondary-30);
+}
+
+/* Sección sin tarjeta (título + tabla) */
+.block {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.block > .cardHead {
+  margin-bottom: 0;
+}
+
+.subline {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.comment {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.comment + .comment {
+  margin-top: 0.5rem;
+}
+
+.resultList {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resultList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.rowActions {
+  justify-content: flex-end;
+}

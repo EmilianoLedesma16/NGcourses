@@ -27,6 +27,10 @@ interface Props {
   leccionId: string;
   currentBunnyVideoId?: string | null;
   onUploadComplete?: (videoId: string, embedUrl: string) => void;
+  /** Se llama tras eliminar el video (la lección queda sin video). */
+  onDeleted?: () => void;
+  /** Curso ya publicado: el aviso de borrado advierte que los alumnos lo notarán. */
+  cursoPublicado?: boolean;
 }
 
 export default function VideoUploadButton({
@@ -35,6 +39,8 @@ export default function VideoUploadButton({
   leccionId,
   currentBunnyVideoId,
   onUploadComplete,
+  onDeleted,
+  cursoPublicado = false,
 }: Props) {
   const [status, setStatus] = useState<'idle' | 'initiating' | 'uploading' | 'encoding' | 'ready' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
@@ -135,6 +141,32 @@ export default function VideoUploadButton({
 
   const handleClick = () => fileInputRef.current?.click();
 
+  const [deleting, setDeleting] = useState(false);
+  const hasVideo = Boolean(currentBunnyVideoId) || status === 'ready';
+  const busy = status === 'initiating' || status === 'uploading' || status === 'encoding' || deleting;
+
+  const handleDelete = async () => {
+    const aviso = cursoPublicado
+      ? '¿Eliminar el video de esta lección?\n\nEl curso está publicado: los alumnos verán la lección sin video hasta que subas otro. El video se borra de Bunny.net y no se puede recuperar.'
+      : '¿Eliminar el video de esta lección?\n\nSe borra de Bunny.net y no se puede recuperar. Para publicar el curso tendrás que subir otro video o quitar la lección.';
+    if (!window.confirm(aviso)) return;
+    setDeleting(true);
+    setErrorMsg('');
+    try {
+      await videoApi.delete(cursoId, moduloId, leccionId);
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      setStatus('idle');
+      setEmbedUrl(null);
+      setProgress(0);
+      onDeleted?.();
+    } catch (err) {
+      const detail = (err as { detail?: unknown })?.detail;
+      setErrorMsg(typeof detail === 'string' ? detail : 'No se pudo eliminar el video. Intenta de nuevo.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const getStatusLabel = () => {
     switch (status) {
       case 'initiating': return 'Iniciando...';
@@ -160,7 +192,7 @@ export default function VideoUploadButton({
         type="button"
         className={`${styles.button} ${status === 'ready' ? styles.ready : ''} ${status === 'error' ? styles.error : ''}`}
         onClick={handleClick}
-        disabled={status === 'initiating' || status === 'uploading' || status === 'encoding'}
+        disabled={busy}
       >
         {status === 'uploading' || status === 'encoding' ? (
           <span className={styles.spinner} />
@@ -180,7 +212,19 @@ export default function VideoUploadButton({
         </div>
       )}
 
-      {status === 'error' && errorMsg && (
+      {hasVideo && !busy && (
+        <button type="button" className={styles.deleteButton} onClick={handleDelete}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+          </svg>
+          Eliminar video
+        </button>
+      )}
+      {deleting && <p className={styles.existingBadge}>Eliminando video…</p>}
+
+      {errorMsg && (status === 'error' || status === 'idle' || status === 'ready') && (
         <p className={styles.errorText}>{errorMsg}</p>
       )}
 

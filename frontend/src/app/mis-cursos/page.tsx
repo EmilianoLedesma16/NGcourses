@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import MyCoursesContent from '@/components/my-courses/MyCoursesContent';
 import type { UserCourse } from '@/types/course';
 import { inscripcionesApi, cursosApi, certificadosApi, progresoApi } from '@/lib/api/client';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 interface ApiInscripcion {
   id: string;
@@ -149,9 +150,7 @@ export default function MisCursosPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando tu progreso...</span>
-      </div>
+      <BrandLoader label="Cargando tu progreso" />
     );
   }
 

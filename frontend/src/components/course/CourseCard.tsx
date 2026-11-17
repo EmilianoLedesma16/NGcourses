@@ -31,6 +31,8 @@ export default function CourseCard({ course }: CourseCardProps) {
   const isGlobal = course.tipo === 'global';
   const subTotal = course.subcursosTotal ?? 0;
   const subDone = course.subcursosCompletados ?? 0;
+  // Inscrito al global, pero el admin agregó cursos después: quedan por inscribir.
+  const subNuevos = isGlobal && course.enrolled ? Math.max(0, subTotal - (course.subcursosInscritos ?? subTotal)) : 0;
   const lecTotal = course.leccionesTotal ?? 0;
   const pct = lecTotal > 0 ? Math.round(((course.leccionesCompletadas ?? 0) / lecTotal) * 100) : 0;
 
@@ -123,13 +125,43 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
       </div>
 
+      {subNuevos > 0 && (
+        <span className={styles.enroll}>
+          <span className={styles.enrollHint}>
+            {subNuevos === 1 ? '1 curso nuevo en este programa' : `${subNuevos} cursos nuevos en este programa`}
+          </span>
+          <span className={styles.enrollAction}>
+            Inscribirme
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </span>
+        </span>
+      )}
+
       {!course.enrolled && !course.bloqueadoPorLicencia && (
-        <span className={styles.enrollCta}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path strokeLinecap="round" d="M12 8v8M8 12h8" />
-          </svg>
-          {isGlobal ? `Inscríbete a los ${subTotal} cursos` : 'Inscríbete para empezar'}
+        <span className={`${styles.enroll} ${isGlobal ? styles.enrollBundle : ''}`}>
+          {isGlobal && subTotal > 0 ? (
+            /* Vista previa del avance que tendrá al inscribirse: un segmento por
+               curso incluido; al pasar el cursor se "llenan" en cascada. */
+            <span className={styles.bundle} aria-hidden="true">
+              <span className={styles.segments}>
+                {Array.from({ length: Math.min(subTotal, 12) }, (_, i) => (
+                  <i key={i} style={{ transitionDelay: `${i * 45}ms` }} />
+                ))}
+              </span>
+            </span>
+          ) : (
+            <span className={styles.enrollHint}>Empieza a tu ritmo</span>
+          )}
+          <span className={styles.enrollAction}>
+            {isGlobal ? `Inscribirme a los ${subTotal}` : 'Inscribirme'}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </span>
         </span>
       )}
     </Link>

@@ -7,6 +7,7 @@ import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import PageHeader from '@/components/admin/PageHeader';
 import styles from './page.module.css';
 import { EditUserSchema } from '@/schemas/user';
+import { PHONE_INPUT_PROPS, sanitizePhone } from '@/lib/inputRules';
 
 interface ApiUser {
   id: string;
@@ -126,7 +127,7 @@ export default function EditarUsuarioPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Nombre completo</label>
-          <input
+          <input maxLength={255}
             type="text"
             className={styles.input}
             value={form.full_name}
@@ -152,10 +153,10 @@ export default function EditarUsuarioPage() {
         <div className={styles.formGroup}>
           <label className={styles.label}>Teléfono</label>
           <input
-            type="tel"
+            {...PHONE_INPUT_PROPS}
             className={styles.input}
             value={form.telefono}
-            onChange={(e) => setForm((f) => ({ ...f, telefono: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, telefono: sanitizePhone(e.target.value) }))}
             placeholder="+52 55 0000 0000"
           />
         </div>

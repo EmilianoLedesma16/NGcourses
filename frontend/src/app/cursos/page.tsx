@@ -6,6 +6,7 @@ import CoursesContent from '@/components/courses/CoursesContent';
 import type { CourseCard, User } from '@/types/course';
 import { cursosApi, categoriasApi, inscripcionesApi } from '@/lib/api/client';
 import { getCurrentUser } from '@/lib/auth';
+import BrandLoader from '@/components/shared/BrandLoader';
 
 const API_URL = '';
 
@@ -122,6 +123,7 @@ export default function CursosPage() {
             tipo: c.tipo,
             subcursosTotal: c.subcursos_total,
             subcursosCompletados: c.subcursos_completados,
+            subcursosInscritos: c.subcursos_inscritos,
             leccionesTotal: c.lecciones_total,
             leccionesCompletadas: c.lecciones_completadas,
             subcursosTitulos: c.subcursos_titulos,
@@ -140,9 +142,7 @@ export default function CursosPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span>Cargando cursos...</span>
-      </div>
+      <BrandLoader label="Cargando cursos" />
     );
   }
 
