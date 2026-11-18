@@ -22,10 +22,24 @@ function formatPrice(precio: number | null | undefined, moneda?: string): string
   return `$${entero} ${moneda || 'MXN'}`;
 }
 
+/** "Ventas · 1 Prospección" dentro de "Ventas" → "Prospección". */
+function sinPrefijo(titulo: string, padre: string): string {
+  const t = titulo.trim();
+  const p = padre.trim().replace(/\.$/, '');
+  const resto = t.toLowerCase().startsWith(p.toLowerCase()) ? t.slice(p.length) : t;
+  const limpio = resto.replace(/^\s*[:·\-–—]\s*/, '').replace(/^\d+[.)]?\s+/, '').trim();
+  return limpio || t;
+}
+
+const MAX_TITULOS = 3;
+
 export default function CourseCard({ course }: CourseCardProps) {
   // Solo se marca el precio cuando hay que pagar: en el catálogo del alumno casi
   // todo es gratuito y un badge "Gratis" en cada tarjeta es ruido.
-  const priceLabel = course.esGratis ? null : formatPrice(course.precio, course.moneda);
+  // Tampoco se muestra si ya está inscrito o si su empresa lo cubre: no lo va a pagar.
+  const priceLabel = course.esGratis || course.enrolled || course.esDeMiOrg
+    ? null
+    : formatPrice(course.precio, course.moneda);
   const steps = LEVEL_STEPS[course.level] ?? 0;
   const title = course.title.trim().replace(/\.$/, '');
   const isGlobal = course.tipo === 'global';
@@ -34,10 +48,11 @@ export default function CourseCard({ course }: CourseCardProps) {
   // Inscrito al global, pero el admin agregó cursos después: quedan por inscribir.
   const subNuevos = isGlobal && course.enrolled ? Math.max(0, subTotal - (course.subcursosInscritos ?? subTotal)) : 0;
   const lecTotal = course.leccionesTotal ?? 0;
+  const titulos = course.subcursosTitulos ?? [];
   const pct = lecTotal > 0 ? Math.round(((course.leccionesCompletadas ?? 0) / lecTotal) * 100) : 0;
 
   return (
-    <Link href={`/curso/${course.id}`} className={`${styles.card} ${isGlobal ? styles.stack : ''}`}>
+    <Link href={`/curso/${course.id}`} className={styles.card}>
       <div className={styles.imageContainer}>
         <CourseCover
           src={course.image}
@@ -47,6 +62,15 @@ export default function CourseCard({ course }: CourseCardProps) {
           tone={course.marca === 'ram' ? 'ram' : 'nextgen'}
         />
         <div className={styles.badges}>
+          {isGlobal && subTotal > 0 && (
+            <span className={`${styles.badge} ${styles.badgeProgram}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+                <path d="m3 13 9 5 9-5" />
+              </svg>
+              {subTotal} {subTotal === 1 ? 'curso' : 'cursos'}
+            </span>
+          )}
           {course.bloqueadoPorLicencia && (
             <span className={`${styles.badge} ${styles.badgeLocked}`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
@@ -74,9 +98,26 @@ export default function CourseCard({ course }: CourseCardProps) {
         <h3 className={styles.title}>{title}</h3>
 
         {isGlobal ? (
-          <p className={styles.meta}>
-            {subTotal} {subTotal === 1 ? 'curso' : 'cursos'} · {lecTotal} {lecTotal === 1 ? 'lección' : 'lecciones'}
-          </p>
+          <>
+            <p className={styles.meta}>
+              Programa · {lecTotal} {lecTotal === 1 ? 'lección' : 'lecciones'}
+            </p>
+            {titulos.length > 0 && (
+              <ol className={styles.programList} aria-label="Cursos del programa">
+                {titulos.slice(0, MAX_TITULOS).map((sub, i) => (
+                  <li key={`${i}-${sub}`}>
+                    <span className={styles.programNum} aria-hidden="true">{i + 1}</span>
+                    <span className={styles.programTitle}>{sinPrefijo(sub, course.title)}</span>
+                  </li>
+                ))}
+                {titulos.length > MAX_TITULOS && (
+                  <li className={styles.programMore}>
+                    y {titulos.length - MAX_TITULOS} {titulos.length - MAX_TITULOS === 1 ? 'curso más' : 'cursos más'}
+                  </li>
+                )}
+              </ol>
+            )}
+          </>
         ) : (
           course.category && <p className={styles.meta}>{course.category}</p>
         )}

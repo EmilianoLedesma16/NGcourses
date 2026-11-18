@@ -152,7 +152,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    label: 'Solicitudes de empresas',
+    label: 'Solicitudes',
     href: '/admin/solicitudes-empresas',
     icon: (
       <svg

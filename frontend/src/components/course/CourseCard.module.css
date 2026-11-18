@@ -163,41 +163,58 @@
   color: var(--color-text-muted);
 }
 
-/* Curso global: dos orillas de tarjeta detrás indican que adentro hay varios
-   cursos. El margen superior deja espacio para que no se encimen en la fila. */
-.stack {
-  position: relative;
-  margin-top: 0.625rem;
-  isolation: isolate;
+/* Curso global (programa): una insignia en la portada y la lista numerada de
+   sus cursos. Sustituye a las "orillas apiladas" detrás de la tarjeta. */
+.badgeProgram {
+  margin-right: auto;
 }
 
-.stack::before,
-.stack::after {
-  content: '';
-  position: absolute;
-  top: -0.375rem;
-  left: 0.875rem;
-  right: 0.875rem;
-  height: 0.75rem;
+.badgeProgram svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-secondary-30);
+}
+
+.programList {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.programList li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-body);
+}
+
+.programNum {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
   border: 1px solid var(--color-border-strong);
-  border-bottom: none;
-  border-radius: 0.75rem 0.75rem 0 0;
-  background-color: var(--color-primary-60-alt);
-  z-index: -1;
-  transition: border-color 0.15s ease;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.stack::after {
-  top: -0.6875rem;
-  left: 1.75rem;
-  right: 1.75rem;
-  opacity: 0.7;
-  z-index: -2;
+.programTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.stack:hover::before,
-.stack:hover::after {
-  border-color: var(--color-secondary-30);
+li.programMore {
+  padding-left: 1.625rem;
+  color: var(--color-text-muted);
 }
 
 .progressRow {
