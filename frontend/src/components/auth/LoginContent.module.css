@@ -1,219 +1,197 @@
-/* Notice de acceso denegado */
-.notice {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  background-color: var(--color-tint-warning, #fff7ed);
-  border: 1px solid #fed7aa;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  color: var(--color-tint-warning-text, #9a3412);
-  font-weight: 500;
-}
+/* Login: panel de marca (izquierda) + formulario sobre luz difusa animada (derecha). */
 
-.container {
+.shell {
+  --ink: #13201d;
+  --muted: #5e6b67;
+  --panel: #0b3b38;
+  --ground: #e4eeea;
+  --brand: #21845e;
+  --brand-hover: #196f4e;
+  --link: #17694a;
+  --focus: #00968f;
+
   min-height: 100vh;
   min-height: 100svh;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr) auto;
-  background: linear-gradient(90deg, #0c8b80 0 50%, var(--color-surface-muted) 50% 100%);
   display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--ground);
 }
 
-.content {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  width: 100%;
-  min-height: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-}
+/* ── Panel de marca ─────────────────────────────────────────────── */
 
-.leftPanel {
+.brandPanel {
   position: relative;
-  isolation: isolate;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding: clamp(24px, 6vh, 64px) clamp(32px, 4vw, 64px) 150px;
+  gap: clamp(14px, 4vh, 40px);
+  padding: clamp(20px, 5.5vh, 56px) clamp(32px, 4.5vw, 64px) clamp(18px, 4.5vh, 48px);
+  background: var(--panel);
   color: #fff;
-  background: transparent;
 }
 
-.leftPanel::before {
-  content: "";
+.corner {
   position: absolute;
-  z-index: 1;
-  inset: 0;
-  background: linear-gradient(145deg, rgba(0,73,69,.68), rgba(0,105,95,.48));
+  width: 120px;
+  height: 120px;
+  color: #3dc1cc;
+  opacity: 0.35;
   pointer-events: none;
 }
 
-.leftPanel > :not(.brandVideo):not(.courseCarousel) {
+.cornerTop {
+  top: 20px;
+  right: 20px;
+}
+
+
+.brand {
   position: relative;
-  z-index: 2;
-}
-
-.brandVideo {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  object-fit: cover;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  background: rgba(0,0,0,.12);
-}
-
-.brandContainer {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-bottom: clamp(24px, 4vh, 42px);
+  gap: clamp(12px, 2vh, 22px);
 }
 
 .brandIcon {
-  width: 28px;
-  height: 28px;
+  width: clamp(52px, min(7.8vw, 11vh), 112px);
+  height: clamp(52px, min(7.8vw, 11vh), 112px);
   object-fit: contain;
   flex-shrink: 0;
 }
 
-.mainTitle {
+.brandName {
   margin: 0;
-  font-size: clamp(17px, 1.5vw, 20px);
+  font-size: clamp(28px, min(3.75vw, 5.4vh), 54px);
   line-height: 1;
-  letter-spacing: -0.35px;
-  display: block;
-  text-align: left;
-  color: #fff;
+  letter-spacing: -0.025em;
 }
 
-.titleBold {
-  font-weight: 900;
+.brandName b {
+  font-weight: 700;
 }
 
-.titleLight {
+.brandName span {
   font-weight: 400;
 }
 
-.titleTagline {
-  max-width: 24ch;
-  margin: 0 0 2px;
-  color: #fff;
-  font-size: clamp(22px, 2.4vw, 30px);
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.5vh, 14px);
+  max-width: 30rem;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(22px, min(2.8vw, 4.3vh), 40px);
+  font-weight: 600;
   line-height: 1.12;
-  letter-spacing: -0.7px;
-  font-weight: 650;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
-.description {
+.heroText {
   margin: 0;
-  max-width: 68ch;
+  font-size: clamp(14px, 2vh, 17px);
   line-height: 1.5;
-  color: rgba(255,255,255,.82);
-  font-size: 12px;
+  color: #b8d8d3;
 }
 
-/* Tira de cursos destacados: línea fina tipo noticias, sin banda de color.
-   Etiqueta fija a la izquierda y títulos corriendo; se pausa con mouse o
-   teclado. Un degradado suave bajo el texto mantiene el contraste. */
-.courseCarousel {
-  position: absolute;
-  z-index: 2;
-  right: 0;
-  bottom: 0;
-  left: 0;
+/* Carrusel de cursos destacados */
+.featured {
+  position: relative;
+  margin-top: auto;
   display: flex;
-  align-items: stretch;
-  width: 100%;
-  min-height: 40px;
-  background: linear-gradient(to top, rgba(0, 30, 28, .6), rgba(0, 30, 28, 0));
+  flex-direction: column;
+  gap: clamp(8px, 1.6vh, 16px);
 }
 
-.courseCarousel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: clamp(24px, 4vw, 64px);
-  left: clamp(24px, 4vw, 64px);
-  height: 1px;
-  background: rgba(255, 255, 255, .3);
-}
-
-.courseCarousel:focus-visible {
-  outline: 2px solid #7fe0d4;
-  outline-offset: -2px;
-}
-
-.carouselLabel {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 0 8px 0 clamp(24px, 4vw, 64px);
-  color: #8fe6dc;
-  font-size: 11px;
+.featuredLabel {
+  margin: 0;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: .12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: #9fc9c3;
 }
 
-.carouselViewport {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
+.reel {
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
 }
 
-.carouselTrack {
+.reel:focus-visible {
+  outline: 2px solid #7fe0d4;
+  outline-offset: 4px;
+}
+
+.track {
   display: flex;
+  gap: 20px;
   width: max-content;
-  animation: courseCarouselSlide 40s linear infinite;
+  animation: reelSlide 48s linear infinite;
 }
 
-.carouselGroup {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.courseCarousel:hover .carouselTrack,
-.courseCarousel:focus-within .carouselTrack {
+.reel:hover .track,
+.reel:focus-within .track,
+.reel:focus .track {
   animation-play-state: paused;
 }
 
-.carouselItem {
-  position: relative;
-  padding: 0 22px;
-  color: rgba(255, 255, 255, .94);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 40px;
-  white-space: nowrap;
+@keyframes reelSlide {
+  to {
+    transform: translateX(calc(-50% - 10px));
+  }
 }
 
-.carouselItem::before {
-  content: "";
-  position: absolute;
-  left: -2px;
-  top: 50%;
-  width: 3px;
-  height: 3px;
-  margin-top: -1.5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .6);
+@keyframes reelSlideSm {
+  to {
+    transform: translateX(calc(-50% - 7px));
+  }
+}
+
+.reelCard {
+  margin: 0;
+  --cover-h: clamp(78px, 15vh, 140px);
+  width: calc(var(--cover-h) * 1.66);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
+}
+
+.reelCover {
+  width: 100%;
+  height: var(--cover-h);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #12403c;
+}
+
+.reelCaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reelTitle {
+  font-size: clamp(13px, 1.9vh, 16px);
+  font-weight: 600;
+  line-height: 1.3;
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reelMeta {
+  font-size: clamp(12px, 1.6vh, 13px);
+  color: #9fc9c3;
 }
 
 .srOnly {
@@ -228,457 +206,509 @@
   border: 0;
 }
 
-/* En escritorio el panel izquierdo baja hasta el borde de la pantalla para
-   que la tira de destacados quede pegada abajo, sin franja turquesa debajo.
-   El pie de página se queda sobre el panel derecho. */
-@media (min-width: 861px) {
-  .content {
-    grid-row: 1 / -1;
-  }
+/* ── Panel del formulario ───────────────────────────────────────── */
 
-  .rightPanel {
-    padding-bottom: calc(clamp(16px, 5vh, 80px) + 52px);
-  }
-
-  .footer {
-    position: relative;
-    z-index: 1;
-    align-self: end;
-    background: transparent;
-  }
-}
-
-@keyframes courseCarouselSlide {
-  to { transform: translateX(-50%); }
-}
-
-.rightPanel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(16px, 5vh, 80px) clamp(28px, 5vw, 80px);
-  background: var(--color-surface-muted);
-}
-
-.loginCard {
-  max-width: 520px;
-  margin-inline: auto;
-  width: 100%;
-  padding: clamp(22px, 5vh, 48px) clamp(26px, 3.6vw, 48px);
-  background: var(--color-surface);
-  border: 1px solid rgba(226,236,231,.85);
-  border-radius: 16px;
-  box-shadow: 0 12px 34px rgba(26,48,42,.08);
+.formPanel {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: clamp(10px, 2vh, 20px);
+  padding: clamp(16px, 4vh, 48px) 24px;
+  background: linear-gradient(125deg, #e4eeea 0%, #cde9e2 22%, #e9f3ef 45%, #c9e6e8 68%, #dcefe6 85%, #e4eeea 100%);
+  background-size: 320% 320%;
+  animation: groundShift 18s ease-in-out infinite;
 }
 
-.loginTitle {
-  margin: 0 0 5px;
-  font-size: clamp(20px, 1.8vw, 24px);
-  letter-spacing: -0.45px;
-  font-weight: 700;
-  color: #1d2b28;
+@keyframes groundShift {
+  0% { background-position: 0% 30%; }
+  50% { background-position: 100% 70%; }
+  100% { background-position: 0% 30%; }
 }
 
-.loginSubtitle {
-  margin: 0 0 26px;
-  color: #74817d;
-  font-size: 13px;
+/* Luz difusa: manchas grandes y desenfocadas en los verdes de la marca. */
+.aura {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+
+.orb:nth-child(1) {
+  top: -12%;
+  right: -8%;
+  width: 620px;
+  height: 620px;
+  background: rgba(0, 150, 143, 0.46);
+  animation: float1 13s ease-in-out infinite alternate, tint1 9s ease-in-out infinite alternate;
+}
+
+.orb:nth-child(2) {
+  bottom: -18%;
+  left: -10%;
+  width: 560px;
+  height: 560px;
+  background: rgba(33, 132, 94, 0.38);
+  animation: float2 16s ease-in-out infinite alternate, tint2 11s ease-in-out infinite alternate;
+}
+
+.orb:nth-child(3) {
+  top: 38%;
+  left: 42%;
+  width: 360px;
+  height: 360px;
+  background: rgba(61, 193, 204, 0.34);
+  animation: float3 11s ease-in-out infinite alternate, tint3 7s ease-in-out infinite alternate;
+}
+
+@keyframes tint1 {
+  50% { background: rgba(61, 193, 204, 0.42); }
+  100% { background: rgba(33, 132, 94, 0.4); }
+}
+
+@keyframes tint2 {
+  50% { background: rgba(0, 150, 143, 0.44); }
+  100% { background: rgba(23, 105, 74, 0.34); }
+}
+
+@keyframes tint3 {
+  50% { background: rgba(33, 132, 94, 0.36); }
+  100% { background: rgba(0, 150, 143, 0.4); }
+}
+
+@keyframes float1 {
+  to {
+    transform: translate(-320px, 240px) scale(1.25);
+  }
+}
+
+@keyframes float2 {
+  to {
+    transform: translate(340px, -220px) scale(1.2);
+  }
+}
+
+@keyframes float3 {
+  to {
+    transform: translate(-260px, 200px) scale(1.35);
+  }
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  padding: clamp(22px, 4.5vh, 40px) 40px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(11, 59, 56, 0.06), 0 18px 40px rgba(11, 59, 56, 0.1);
+}
+
+.cardTitle {
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.cardSubtitle {
+  margin: 0 0 clamp(14px, 3vh, 28px);
+  font-size: 15px;
   line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Aviso (acceso denegado / contraseña actualizada) */
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #9a3412;
+  font-weight: 500;
+}
+
+.noticeText {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.noticeClose {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .form {
   display: flex;
   flex-direction: column;
+  gap: clamp(12px, 2.2vh, 18px);
 }
 
-.inputGroup {
+.field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin-bottom: 16px;
+  gap: 8px;
 }
 
-.inputLabel {
-  font-size: 12px;
-  font-weight: 550;
-  color: #455550;
-}
-
-.inputWrapper {
+.labelRow {
   display: flex;
-  align-items: center;
-  gap: 11px;
-  border-radius: 9px;
-  background: #fbfcfb;
-  border: 1px solid #dfe7e3;
-  padding: 12px 14px;
-  transition: box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
-}
-
-.inputWrapper:focus-within {
-  background: var(--color-surface);
-  border-color: #4b9b80;
-  box-shadow: 0 0 0 3px rgba(75,155,128,.12);
-}
-
-.inputIcon {
-  opacity: 0.62;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  color: #43544e;
-}
-
-.input {
-  border: 0;
-  outline: 0;
-  width: 100%;
-  font-size: 14px;
-  background: transparent;
-  color: #23332d;
-}
-
-.input::placeholder {
-  color: #9aa5a1;
-}
-
-.togglePassword {
-  cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 0.2s;
-  flex: 0 0 auto;
-  background: none;
-  border: none;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  color: #43544e;
-}
-
-.togglePassword:hover {
-  opacity: 1;
-}
-
-.optionsRow {
-  display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 0 20px;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.checkboxLabel {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 12px;
-  color: #71807a;
-  user-select: none;
-  cursor: pointer;
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
 }
 
-.checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: #27845f;
-  cursor: pointer;
-}
-
-.submitButton {
-  border: 0;
-  width: 100%;
-  padding: 13px 16px;
-  border-radius: 9px;
-  font-weight: 650;
-  letter-spacing: 0.1px;
-  color: white;
-  background-color: #21845e;
-  box-shadow: 0 6px 16px rgba(33,132,94,.16);
-  cursor: pointer;
-  transition: transform 0.12s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-  font-size: 0.95rem;
-}
-
-.submitButton:hover {
-  background-color: #196f4e;
-  box-shadow: 0 8px 20px rgba(33,132,94,.2);
-}
-
-.submitButton:active {
-  transform: translateY(1px);
-}
-
-.footer {
-  grid-column: 2;
-  grid-row: 2;
-  padding-top: 20px;
-  padding-bottom: 18px;
-  color: #71817c;
-  font-size: 10px;
-  text-align: center;
-  background: var(--color-surface-muted);
-}
-
-/* Escritorio/tablet horizontal: el login ocupa exactamente la pantalla, sin scroll. */
-@media (min-width: 681px) {
-  .container {
-    height: 100vh;
-    height: 100svh;
-    overflow: hidden;
-  }
-
-  .content {
-    min-height: 0;
-  }
-}
-
-@media (min-width: 681px) and (max-height: 760px) {
-  .leftPanel {
-    padding-bottom: 120px;
-  }
-
-  .loginSubtitle {
-    margin-bottom: 16px;
-  }
-
-  .inputGroup {
-    gap: 5px;
-    margin-bottom: 12px;
-  }
-
-  .inputWrapper {
-    padding: 9px 12px;
-  }
-
-  .optionsRow {
-    margin: 4px 0 14px;
-  }
-
-  .submitButton {
-    padding: 11px 14px;
-  }
-
-  .footer {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-}
-
-@media (min-width: 681px) and (max-height: 600px) {
-  .brandContainer {
-    margin-bottom: 12px;
-  }
-
-  .titleTagline {
-    font-size: clamp(18px, 2vw, 24px);
-  }
-
-  .notice {
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .loginTitle {
-    font-size: 18px;
-  }
-
-  .loginSubtitle {
-    margin-bottom: 10px;
-  }
-
-  .inputGroup {
-    margin-bottom: 8px;
-  }
-
-  .inputWrapper {
-    padding: 7px 11px;
-  }
-
-  .optionsRow {
-    margin: 2px 0 10px;
-  }
-
-  .submitButton {
-    padding: 9px 14px;
-  }
-
-}
-
-@media (max-width: 860px) {
-  .leftPanel {
-    padding: 30px 30px 132px;
-  }
-
-  .rightPanel {
-    padding: 28px;
-  }
-
-  .brandContainer {
-    margin-bottom: 20px;
-  }
-
-  .loginCard {
-    padding: 24px 26px;
-  }
-
-  .loginTitle {
-    font-size: 19px;
-  }
-
-  .loginSubtitle {
-    margin-bottom: 18px;
-    font-size: 12px;
-  }
-
-  .inputGroup {
-    gap: 5px;
-    margin-bottom: 12px;
-  }
-
-  .inputLabel {
-    font-size: 11px;
-  }
-
-  .inputWrapper {
-    padding: 9px 11px;
-  }
-
-  .input {
-    font-size: 13px;
-  }
-
-  .optionsRow {
-    margin: 6px 0 16px;
-  }
-
-  .checkboxLabel {
-    font-size: 11px;
-  }
-
-  .submitButton {
-    padding: 11px 14px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 680px) {
-  .container {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    background: var(--color-surface-muted);
-  }
-
-  .content {
-    grid-column: 1;
-    grid-row: 1;
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
-
-  .leftPanel {
-    padding: 32px 24px 116px;
-    background: linear-gradient(145deg, #087b73 0%, #0c8b80 55%, #126d68 100%);
-  }
-
-  .rightPanel {
-    padding: 32px 24px;
-  }
-
-  .titleTagline {
-    max-width: 30ch;
-    font-size: clamp(22px, 6vw, 28px);
-  }
-
-  .carouselLabel {
-    padding: 0 12px 0 16px;
-  }
-
-  .loginCard {
-    max-width: 480px;
-  }
-
-  .footer {
-    grid-column: 1;
-    grid-row: 2;
-  }
-}
-
-@media (max-width: 480px) {
-  .leftPanel {
-    padding: 28px 18px 108px;
-  }
-
-  .brandIcon {
-    width: 27px;
-    height: 27px;
-  }
-
-  .mainTitle {
-    font-size: 18px;
-  }
-
-  .loginCard {
-    padding: 24px 20px;
-    border-radius: 14px;
-  }
-
-  .loginTitle {
-    font-size: 21px;
-  }
-
-  .footer {
-    padding: 12px 16px 16px;
-  }
-
-  .carouselItem {
-    padding: 0 16px;
-    font-size: 13px;
-    line-height: 40px;
-  }
-
-  .optionsRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-}
-
-/* Consentimiento y enlaces legales (Términos / Aviso de privacidad). */
-.legalNote {
-  margin: 14px 0 0;
-  font-size: 11.5px;
-  line-height: 1.5;
-  text-align: center;
-  color: #71817c;
-}
-
-.legalNote a,
-.footerLinks a {
-  color: #21845e;
-  font-weight: 600;
+.link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--link);
   text-decoration: none;
 }
 
-.legalNote a:hover,
-.footerLinks a:hover {
+.link:hover {
   text-decoration: underline;
 }
 
-.footerLinks {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 11px;
+.input {
+  width: 100%;
+  height: clamp(42px, 6vh, 48px);
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid #84928d;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.footer {
+.input::placeholder {
+  color: #8a9692;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(0, 150, 143, 0.18);
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.inputPassword {
+  padding-right: 48px;
+}
+
+.togglePassword {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #5e6b67;
+  cursor: pointer;
+}
+
+.togglePassword:hover {
+  color: var(--ink);
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--brand);
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-error, #b42318);
+}
+
+.submit {
+  height: clamp(44px, 6.2vh, 50px);
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.12s;
+}
+
+.submit:hover {
+  background: var(--brand-hover);
+}
+
+.submit:active {
+  transform: translateY(1px);
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.submit:focus-visible,
+.link:focus-visible,
+.togglePassword:focus-visible,
+.noticeClose:focus-visible,
+.legal a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.cardFoot {
+  margin: clamp(14px, 3vh, 24px) 0 0;
+  padding-top: clamp(12px, 2.5vh, 20px);
+  border-top: 1px solid #e5ece9;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.legal {
+  margin: 0;
+  max-width: 440px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2b3a36;
+}
+
+.legal a {
+  color: #0f4f37;
+  font-weight: 600;
+}
+
+.copy {
+  margin: 0;
+  font-size: 13px;
+  color: #2b3a36;
+}
+
+/* ── Responsivo ─────────────────────────────────────────────────── */
+
+/* Escritorio: el login ocupa exactamente la pantalla y todo cabe sin scroll.
+   El formulario puede desplazarse por dentro solo si aparece un aviso largo. */
+@media (min-width: 901px) {
+  .shell {
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .brandPanel {
+    min-height: 0;
+  }
+
+  .formPanel {
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* Pantallas muy bajas (laptop con zoom, celular horizontal): se omite el texto
+   secundario para que el carrusel siga a la vista. */
+@media (min-width: 901px) and (max-height: 600px) {
+  .heroText,
+  .corner,
+  .reelMeta,
+  .copy {
+    display: none;
+  }
+}
+
+/* Debajo de esto la pantalla es demasiado baja: se permite scroll normal. */
+@media (min-width: 901px) and (max-height: 420px) {
+  .shell {
+    height: auto;
+    min-height: 100svh;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brandPanel {
+    gap: 22px;
+    padding: 28px 0;
+  }
+
+  .brand,
+  .hero,
+  .featuredLabel {
+    padding: 0 20px;
+  }
+
+  .corner,
+  .heroText {
+    display: none;
+  }
+
+  .brand {
+    gap: 14px;
+  }
+
+  .brandIcon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .brandName {
+    font-size: 32px;
+  }
+
+  .heroTitle {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #b8d8d3;
+  }
+
+  .featured {
+    gap: 12px;
+  }
+
+  .reel {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  }
+
+  .track {
+    gap: 14px;
+    padding-left: 20px;
+    animation: reelSlideSm 40s linear infinite;
+  }
+
+  .reelCard {
+    --cover-h: 96px;
+  }
+
+  .reelCover {
+    border-radius: 10px;
+  }
+
+  .reelTitle {
+    font-size: 14px;
+  }
+
+  .reelMeta {
+    display: none;
+  }
+
+  .formPanel {
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 24px 16px 32px;
+  }
+
+  .orb:nth-child(1) {
+    width: 320px;
+    height: 320px;
+    filter: blur(50px);
+  }
+
+  .orb:nth-child(2) {
+    width: 300px;
+    height: 300px;
+    filter: blur(50px);
+  }
+
+  .orb:nth-child(3) {
+    display: none;
+  }
+
+  .card {
+    padding: 28px 22px;
+    border-radius: 18px;
+  }
+
+  .cardTitle {
+    font-size: 24px;
+  }
+
+  .cardSubtitle {
+    margin-bottom: 22px;
+  }
+
+  .input {
+    font-size: 16px; /* evita el zoom automático de iOS */
+  }
+
+  .remember {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 380px) {
+  .labelRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .orb,
+  .formPanel {
+    animation: none;
+  }
+
+  .reel {
+    overflow-x: auto;
+  }
 }
