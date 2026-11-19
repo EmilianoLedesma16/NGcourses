@@ -6,17 +6,16 @@ from datetime import datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlmodel import SQLModel, func, select
+from sqlmodel import SQLModel
 
 logger = logging.getLogger(__name__)
 
 from app import crud
-from app.api.deps import AdminOrSuperuser, CurrentUser, SessionDep, get_current_active_superuser
+from app.api.deps import AdminOrSuperuser, CurrentUser, SessionDep
 from app.core.config import settings
 from app.models._enums import EstadoCurso, EstadoInscripcion, MarcaCurso, RolUsuario, TipoCurso, TipoLeccion
-from app.models.inscripcion import Inscripcion
 from app.models.user import User
 from app.models.contenido import (
     BunnyVideoInitResponse,
@@ -242,6 +241,9 @@ def list_cursos(
             session=session, current_user=current_user, items=items, count=count,
             accesibles=accesibles, comprados=comprados,
         )
+        _llenar_lecciones_individuales(
+            session=session, usuario_id=current_user.id, items=items,
+        )
         return CursosPublic(data=items, count=count)
 
     # Admin/instructor: también se expone el nivel (vive en metadata) para el
@@ -252,6 +254,26 @@ def list_cursos(
         item.nivel = (c.metadata_ or {}).get("nivel")
         items.append(item)
     return CursosPublic(data=items, count=count)
+
+
+def _llenar_lecciones_individuales(
+    *, session: SessionDep, usuario_id: uuid.UUID, items: list[CursoPublic]
+) -> None:
+    """Lecciones visibles y avance del alumno en los cursos individuales del
+    catálogo (los globales ya los llena `_llenar_agregados_global`). Mismo
+    criterio que la barra del reproductor; dos consultas para toda la lista."""
+    ids = [i.id for i in items if i.tipo != TipoCurso.GLOBAL]
+    if not ids:
+        return
+    totales = crud.contar_lecciones_visibles(session=session, curso_ids=ids)
+    avance = crud.avance_en_cursos(session=session, usuario_id=usuario_id, curso_ids=ids)
+    for item in items:
+        if item.tipo == TipoCurso.GLOBAL:
+            continue
+        total = totales.get(item.id, 0)
+        item.lecciones_total = total
+        if item.id in avance:
+            item.lecciones_completadas = min(avance[item.id][1], total)
 
 
 def _llenar_agregados_global(
@@ -1108,7 +1130,6 @@ def init_video_upload(
     video_id = bunny_resp["guid"]
 
     # Guardar en BD
-    from app.models.contenido import Leccion
     from datetime import datetime
     db_leccion.bunny_video_id = video_id
     db_leccion.hls_url = None
