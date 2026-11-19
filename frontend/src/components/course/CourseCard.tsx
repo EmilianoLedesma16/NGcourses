@@ -71,7 +71,15 @@ export default function CourseCard({ course }: CourseCardProps) {
   const pct = lecTotal > 0 ? Math.round(((course.leccionesCompletadas ?? 0) / lecTotal) * 100) : 0;
   const terminado = !!course.enrolled && lecTotal > 0 && pct >= 100;
   const locked = !!course.bloqueadoPorLicencia;
-  const hasCover = !!course.image && !course.image.endsWith('/placeholder-course.jpg');
+  const cover = (
+    <CourseCover
+      src={course.image}
+      title={course.title}
+      caption={course.category}
+      variant="grid"
+      tone={course.marca === 'ram' ? 'ram' : 'nextgen'}
+    />
+  );
 
   const level = steps > 0 && (
     <span className={styles.level}>
@@ -179,20 +187,29 @@ export default function CourseCard({ course }: CourseCardProps) {
   return (
     <Link href={`/curso/${course.id}`} className={`${styles.card} ${isGlobal ? styles.program : ''}`}>
       <div className={styles.imageContainer}>
-        {isGlobal && hasCover ? (
-          // Programa: la portada va montada como etiqueta 16:10 sobre la placa.
-          // La placa absorbe el tamaño variable; la imagen nunca se recorta.
-          <div className={styles.tile}>
-            <CourseCover src={course.image} title={course.title} />
+        {isGlobal ? (
+          // Programa: la portada va al frente de una pila de hojas (una por
+          // curso, hasta dos). La pila escala con la placa y la imagen nunca
+          // se recorta. La pastilla dice el tamaño o, si ya avanza, el avance.
+          <div className={styles.stack}>
+            {subTotal > 2 && <span className={`${styles.sheet} ${styles.sheet2}`} aria-hidden="true" />}
+            {subTotal > 1 && <span className={`${styles.sheet} ${styles.sheet1}`} aria-hidden="true" />}
+            <div className={styles.front}>{cover}</div>
+            {subTotal > 0 && (
+              <span className={styles.pill} aria-hidden="true">
+                {course.enrolled ? (
+                  <>
+                    <Check />
+                    {Math.min(subDone, subTotal)} de {subTotal}
+                  </>
+                ) : (
+                  plural(subTotal, 'curso', 'cursos')
+                )}
+              </span>
+            )}
           </div>
         ) : (
-          <CourseCover
-            src={course.image}
-            title={course.title}
-            caption={course.category}
-            variant="grid"
-            tone={course.marca === 'ram' ? 'ram' : 'nextgen'}
-          />
+          cover
         )}
         <div className={styles.badges}>
           {isGlobal && subTotal > 0 && (
