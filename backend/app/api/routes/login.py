@@ -3,17 +3,16 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 
 from app import crud
-from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.api.deps import CurrentUser, SessionDep
 from app.core import security
 from app.core.config import settings
 from app.core.limiter import get_client_ip, limiter
 from app.core.security import get_password_hash
-from app.models import Message, NewPassword, PasswordRecoveryRequest, Token, User, UserPublic
+from app.models import Message, NewPassword, PasswordRecoveryRequest, User, UserPublic
 from app.models._enums import RolUsuario
 from app.models.sistema import RefreshToken
 from app.utils import (
@@ -327,29 +326,3 @@ def reset_password(request: Request, session: SessionDep, body: NewPassword) -> 
         session.add(rt)
     session.commit()
     return Message(message="Password updated successfully")
-
-
-@router.post(
-    "/password-recovery-html-content",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_class=HTMLResponse,
-)
-def recover_password_html_content(body: PasswordRecoveryRequest, session: SessionDep) -> Any:
-    """
-    HTML Content for Password Recovery
-    """
-    user = crud.get_user_by_email(session=session, email=body.email)
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
-        )
-    password_reset_token = generate_password_reset_token(email=body.email)
-    email_data = generate_reset_password_email(
-        email_to=user.email, email=body.email, token=password_reset_token
-    )
-
-    return HTMLResponse(
-        content=email_data.html_content, headers={"subject:": email_data.subject}
-    )

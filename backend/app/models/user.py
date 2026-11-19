@@ -42,16 +42,13 @@ class UserAltaAdmin(UserBase):
     """Alta desde el panel admin: SIN contraseña. La cuenta nace pendiente de
     activación y el usuario crea su contraseña con el enlace del correo."""
 
+    # Solo para alumnos: lo liga como MIEMBRO de esa organización (opcional).
+    organizacion_id: uuid.UUID | None = None
+
     @field_validator("telefono", mode="before")
     @classmethod
     def _tel(cls, v: object) -> str | None:
         return normalizar_telefono(v)
-
-
-class UserRegister(SQLModel):
-    email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
 
 
 # Properties to receive via API on update — deliberadamente NO hereda UserBase

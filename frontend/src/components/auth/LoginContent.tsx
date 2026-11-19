@@ -35,18 +35,6 @@ const NIVEL_LABEL: Record<string, string> = {
   avanzado: 'Avanzado',
 };
 
-/** Escuadras decorativas de las esquinas del panel de marca. */
-function CornerMark({ className }: { className: string }) {
-  return (
-    <svg className={className} aria-hidden="true" viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M118 2H2v116" />
-      <path d="M118 12H12v106" />
-      <path d="M28 28h24v24H28z" />
-      <path d="M36 36h8v8h-8z" />
-    </svg>
-  );
-}
-
 export default function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -129,8 +117,6 @@ export default function LoginContent() {
     <div className={styles.shell} data-theme="light">
       {/* Panel izquierdo: marca + cursos destacados */}
       <section className={styles.brandPanel} aria-label="NextGen Course">
-        <CornerMark className={`${styles.corner} ${styles.cornerTop}`} />
-
         <div className={styles.brand}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/icono_invertido.png" alt="" className={styles.brandIcon} />

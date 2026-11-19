@@ -109,6 +109,7 @@ export default function CursosPage() {
             instructor: '',
             level: (c.nivel && NIVEL_LABEL[c.nivel]) || 'No especificado',
             category: (c.categoria_id && categoriaNombre.get(c.categoria_id)) || undefined,
+            description: c.descripcion?.replace(/\s+/g, ' ').trim() || undefined,
             rating: c.calificacion_prom || 0,
             reviews: c.total_resenas ?? 0,
             image: c.portada_url ? `${API_URL}${c.portada_url}` : '/placeholder-course.jpg',

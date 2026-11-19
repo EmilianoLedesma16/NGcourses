@@ -127,6 +127,8 @@ export interface CourseCard {
   image: string;
   tag?: CourseTag;
   category?: string;
+  /** Descripción corta del curso (se muestra en 2 líneas). */
+  description?: string;
   marca?: 'ram' | 'nextgen';
   bloqueadoPorLicencia?: boolean;
   esDeMiOrg?: boolean;

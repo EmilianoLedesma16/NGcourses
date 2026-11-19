@@ -196,6 +196,10 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.25rem), 1fr));
+  /* El curso global ocupa 2 columnas cuando caben (container query en
+     CourseCard); `dense` rellena el hueco que pueda dejar al final de fila. */
+  grid-auto-flow: dense;
+  container-type: inline-size;
 }
 
 /* Estado vacío */

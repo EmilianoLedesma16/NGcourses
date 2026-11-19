@@ -1,19 +1,15 @@
-import hashlib
 import logging
 import uuid
 from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import EmailStr
 from sqlmodel import SQLModel, select
 
 from app import crud
 from app.api.deps import SessionDep, SupervisorOrAbove
 from app.api.routes.admin_stats import Embudo, Semana, resumen_avance
 from app.core.config import settings
-from app.core.security import get_password_hash
-from app.models import User, UserCreate
 from app.models._enums import (
     EstadoCurso,
     EstadoInscripcion,
@@ -21,9 +17,8 @@ from app.models._enums import (
     RolOrganizacion,
     RolUsuario,
 )
-from app.models._validators import Telefono, Texto255
-from app.models.organizacion import LicenciaCurso, SolicitudCurso, UsuarioOrganizacion
-from app.utils import email_formato_valido, generate_activacion_email, send_email
+from app.models.organizacion import LicenciaCurso, UsuarioOrganizacion
+from app.utils import email_formato_valido
 
 logger = logging.getLogger(__name__)
 
@@ -56,14 +51,6 @@ class UsuarioOrgPublic(SQLModel):
     rol_org: str
     progreso_promedio: float
     cursos_inscritos: int
-
-
-class CrearUsuarioBody(SQLModel):
-    """Alta de un alumno por el supervisor. SIN contraseña: la cuenta nace
-    pendiente y el alumno crea la suya con el enlace de activación."""
-    email: EmailStr
-    full_name: Texto255 = None
-    telefono: Telefono = None
 
 
 class CursoOrgPublic(SQLModel):
@@ -136,6 +123,26 @@ def _get_user_org(session, user_id: uuid.UUID):
             detail="No perteneces a ninguna organización",
         )
     return info  # (org, rol_org)
+
+
+def _supervisores_de_org(session, org_id: uuid.UUID) -> set[uuid.UUID]:
+    """Ids de los supervisores (ADMIN_ORG) de la organización. Con el flag
+    'multiples_supervisores' puede haber varios: comparten las invitaciones."""
+    return set(session.exec(
+        select(UsuarioOrganizacion.usuario_id).where(
+            UsuarioOrganizacion.organizacion_id == org_id,
+            UsuarioOrganizacion.rol_org == RolOrganizacion.ADMIN_ORG,
+        )
+    ).all())
+
+
+def _invitacion_de_mi_org(session, invitacion_id: uuid.UUID, user_id: uuid.UUID) -> Any:
+    """Invitación enviada por cualquier supervisor de la org del usuario; 404 si no."""
+    org, _rol = _get_user_org(session, user_id)
+    inv = crud.get_invitacion_by_id(session=session, invitacion_id=invitacion_id)
+    if not inv or inv.creado_por not in _supervisores_de_org(session, org.id):
+        raise HTTPException(status_code=404, detail="Invitación no encontrada")
+    return inv
 
 
 def _estado_invitacion(inv: Any) -> str:
@@ -215,54 +222,6 @@ def usuarios_de_mi_org(
     return result
 
 
-@router.post("/usuarios", response_model=UsuarioOrgPublic, status_code=201)
-def crear_usuario(
-    *, session: SessionDep, current_user: SupervisorOrAbove, body: CrearUsuarioBody,
-) -> Any:
-    """Alta directa de un usuario miembro de la organización del supervisor."""
-    org, _rol = _get_user_org(session, current_user.id)
-
-    existing = crud.get_user_by_email(session=session, email=body.email)
-    if existing:
-        # Si existe y no es de esta org, lo agregamos. Si ya pertenece a otra, error.
-        actual = crud.get_organizacion_of_user(session=session, user_id=existing.id)
-        if actual and actual[0].id != org.id:
-            raise HTTPException(
-                status_code=409,
-                detail="El usuario ya pertenece a otra organización",
-            )
-        user = existing
-    else:
-        user, _creado, token = crud.get_or_create_user_by_email(
-            session=session, email=body.email
-        )
-        if body.full_name or body.telefono:
-            user.full_name = body.full_name or user.full_name
-            user.telefono = body.telefono or user.telefono
-            session.add(user)
-            session.commit()
-            session.refresh(user)
-        if token and settings.emails_enabled:
-            email_data = generate_activacion_email(email_to=user.email, token=token)
-            send_email(
-                email_to=user.email,
-                subject=email_data.subject,
-                html_content=email_data.html_content,
-            )
-
-    crud.add_user_to_organizacion(
-        session=session, org_id=org.id, user_id=user.id,
-        rol_org=RolOrganizacion.MIEMBRO,
-    )
-    return UsuarioOrgPublic(
-        id=user.id, email=user.email, full_name=user.full_name, telefono=user.telefono,
-        is_active=user.is_active,
-        estado=user.estado.value if hasattr(user.estado, "value") else str(user.estado),
-        rol_org=RolOrganizacion.MIEMBRO.value,
-        progreso_promedio=0.0, cursos_inscritos=0,
-    )
-
-
 @router.delete("/usuarios/{user_id}", status_code=204)
 def quitar_usuario(
     *, user_id: uuid.UUID, session: SessionDep, current_user: SupervisorOrAbove,
@@ -273,6 +232,13 @@ def quitar_usuario(
             detail="No puedes quitarte a ti mismo de la organización.",
         )
     org, _rol = _get_user_org(session, current_user.id)
+    # Con varios supervisores en la org, uno no puede sacar a otro: eso lo
+    # decide el administrador desde Organizaciones.
+    if user_id in _supervisores_de_org(session, org.id):
+        raise HTTPException(
+            status_code=403,
+            detail="No puedes quitar a otro supervisor. Pídeselo a un administrador.",
+        )
     crud.remove_user_from_organizacion(
         session=session, org_id=org.id, user_id=user_id
     )
@@ -375,8 +341,9 @@ def invitar(
 def listar_invitaciones(
     *, session: SessionDep, current_user: SupervisorOrAbove,
 ) -> Any:
-    """Lista invitaciones enviadas por este supervisor, acotadas a los cursos
-    actualmente licenciados a su organización (no las de cursos ajenos/sin licencia)."""
+    """Lista las invitaciones enviadas por los supervisores de su organización
+    (todos ven las de todos), acotadas a los cursos actualmente licenciados a la
+    organización (no las de cursos ajenos/sin licencia)."""
     org, _rol = _get_user_org(session, current_user.id)
     from app.models.invitacion import InvitacionCurso
 
@@ -387,7 +354,7 @@ def listar_invitaciones(
 
     invs = list(session.exec(
         select(InvitacionCurso).where(
-            InvitacionCurso.creado_por == current_user.id
+            InvitacionCurso.creado_por.in_(_supervisores_de_org(session, org.id))  # type: ignore[attr-defined]
         ).order_by(InvitacionCurso.creado_en.desc())  # type: ignore[arg-type]
     ).all())
     invs = [inv for inv in invs if inv.curso_id in curso_ids_org]
@@ -407,11 +374,9 @@ def listar_invitaciones(
 def reenviar_invitacion_supervisor(
     *, invitacion_id: uuid.UUID, session: SessionDep, current_user: SupervisorOrAbove,
 ) -> Any:
-    """Reenvía el email de una invitación creada por este supervisor. Genera un
-    nuevo token. No permite reenviar invitaciones ya usadas."""
-    inv = crud.get_invitacion_by_id(session=session, invitacion_id=invitacion_id)
-    if not inv or inv.creado_por != current_user.id:
-        raise HTTPException(status_code=404, detail="Invitación no encontrada")
+    """Reenvía el email de una invitación de su organización. Genera un nuevo
+    token. No permite reenviar invitaciones ya usadas."""
+    inv = _invitacion_de_mi_org(session, invitacion_id, current_user.id)
     if inv.usado_en is not None:
         raise HTTPException(
             status_code=409, detail="No se puede reenviar una invitación ya utilizada"
@@ -440,10 +405,8 @@ def reenviar_invitacion_supervisor(
 def revocar_invitacion_supervisor(
     *, invitacion_id: uuid.UUID, session: SessionDep, current_user: SupervisorOrAbove,
 ) -> None:
-    """Revoca una invitación pendiente creada por este supervisor."""
-    inv = crud.get_invitacion_by_id(session=session, invitacion_id=invitacion_id)
-    if not inv or inv.creado_por != current_user.id:
-        raise HTTPException(status_code=404, detail="Invitación no encontrada")
+    """Revoca una invitación pendiente de su organización."""
+    inv = _invitacion_de_mi_org(session, invitacion_id, current_user.id)
     if inv.usado_en is not None:
         raise HTTPException(
             status_code=409, detail="No se puede revocar una invitación ya utilizada"

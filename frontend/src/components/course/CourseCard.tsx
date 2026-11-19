@@ -31,7 +31,26 @@ function sinPrefijo(titulo: string, padre: string): string {
   return limpio || t;
 }
 
-const MAX_TITULOS = 3;
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+
+const MAX_TITULOS = 4;
+
+function Arrow() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14" />
+      <path d="M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function Check({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden="true" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
 
 export default function CourseCard({ course }: CourseCardProps) {
   // Solo se marca el precio cuando hay que pagar: en el catálogo del alumno casi
@@ -50,9 +69,114 @@ export default function CourseCard({ course }: CourseCardProps) {
   const lecTotal = course.leccionesTotal ?? 0;
   const titulos = course.subcursosTitulos ?? [];
   const pct = lecTotal > 0 ? Math.round(((course.leccionesCompletadas ?? 0) / lecTotal) * 100) : 0;
+  const terminado = !!course.enrolled && lecTotal > 0 && pct >= 100;
+  const locked = !!course.bloqueadoPorLicencia;
+
+  const level = steps > 0 && (
+    <span className={styles.level}>
+      <span className={styles.meter} aria-hidden="true">
+        {[1, 2, 3].map((i) => (
+          <i key={i} className={i <= steps ? styles.meterOn : undefined} />
+        ))}
+      </span>
+      {course.level}
+    </span>
+  );
+
+  const rating = course.rating > 0 && (course.reviews ?? 0) > 0 && (
+    <span
+      className={styles.rating}
+      aria-label={`Calificación ${course.rating.toFixed(1)} de 5, ${course.reviews} reseñas`}
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 17.3l-6.2 3.7 1.7-7L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.5 4.8 1.7 7z" />
+      </svg>
+      {course.rating.toFixed(1)} <span className={styles.ratingCount}>({course.reviews})</span>
+    </span>
+  );
+
+  /* Pie de tarjeta: una sola acción según el estado del alumno. */
+  let footer: React.ReactNode = null;
+  if (isGlobal) {
+    const segs = Math.min(subTotal, 12);
+    const llenos = course.enrolled ? Math.min(subDone, segs) : 0;
+    const segments = subTotal > 0 && (
+      <span className={styles.segments} aria-hidden="true">
+        {Array.from({ length: segs }, (_, i) => (
+          <i
+            key={i}
+            className={i < llenos ? styles.segOn : undefined}
+            style={{ transitionDelay: `${i * 45}ms` }}
+          />
+        ))}
+      </span>
+    );
+    if (subNuevos > 0) {
+      footer = (
+        <>
+          <span className={styles.hint}>{plural(subNuevos, 'curso nuevo', 'cursos nuevos')} en este programa</span>
+          <span className={styles.cta}>Inscribirme<Arrow /></span>
+        </>
+      );
+    } else if (course.enrolled) {
+      footer = (
+        <>
+          <span className={styles.progressInline}>
+            {segments}
+            <span
+              className={styles.pct}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={pct}
+              aria-label={`Avance ${pct} %, ${subDone} de ${subTotal} cursos`}
+            >
+              {subDone} de {subTotal}
+            </span>
+          </span>
+          <span className={`${styles.cta} ${styles.ctaSoft}`}>{terminado ? 'Ver programa' : 'Continuar'}</span>
+        </>
+      );
+    } else if (!locked) {
+      footer = (
+        <>
+          <span className={`${styles.progressInline} ${styles.preview}`}>{segments}</span>
+          <span className={styles.cta}>Inscribirme a los {subTotal}<Arrow /></span>
+        </>
+      );
+    }
+  } else if (course.enrolled) {
+    footer = (
+      <>
+        <span className={styles.progressInline}>
+          <span
+            className={styles.track}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={pct}
+            aria-label={`Avance ${pct} %`}
+          >
+            <span className={styles.fill} style={{ width: `${pct}%` }} />
+          </span>
+          <span className={styles.pct}>{pct} %</span>
+        </span>
+        <span className={`${styles.cta} ${styles.ctaSoft}`}>{terminado ? 'Ver curso' : 'Continuar'}</span>
+      </>
+    );
+  } else if (!locked) {
+    footer = (
+      <>
+        <span className={styles.hint}>Empieza a tu ritmo</span>
+        <span className={styles.cta}>Inscribirme<Arrow /></span>
+      </>
+    );
+  } else {
+    footer = <span className={styles.hint}>Disponible con licencia de tu empresa</span>;
+  }
 
   return (
-    <Link href={`/curso/${course.id}`} className={styles.card}>
+    <Link href={`/curso/${course.id}`} className={`${styles.card} ${isGlobal ? styles.program : ''}`}>
       <div className={styles.imageContainer}>
         <CourseCover
           src={course.image}
@@ -68,10 +192,10 @@ export default function CourseCard({ course }: CourseCardProps) {
                 <path d="M12 3 3 8l9 5 9-5-9-5Z" />
                 <path d="m3 13 9 5 9-5" />
               </svg>
-              {subTotal} {subTotal === 1 ? 'curso' : 'cursos'}
+              Programa
             </span>
           )}
-          {course.bloqueadoPorLicencia && (
+          {locked && (
             <span className={`${styles.badge} ${styles.badgeLocked}`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
                 <rect x="5" y="11" width="14" height="10" rx="2" />
@@ -82,10 +206,8 @@ export default function CourseCard({ course }: CourseCardProps) {
           )}
           {course.enrolled && (
             <span className={styles.badge}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden="true" className={styles.badgeCheck}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4.5 4.5L19 7.5" />
-              </svg>
-              Inscrito
+              <Check className={styles.badgeCheck} />
+              {terminado ? 'Terminado' : 'Inscrito'}
             </span>
           )}
           {priceLabel && <span className={styles.badge}>{priceLabel}</span>}
@@ -93,16 +215,20 @@ export default function CourseCard({ course }: CourseCardProps) {
       </div>
 
       <div className={styles.content}>
-        {course.tag && <span className={styles.tag}>{course.tag}</span>}
+        <div className={styles.body}>
+          {course.tag && <span className={styles.tag}>{course.tag}</span>}
 
-        <h3 className={styles.title}>{title}</h3>
+          {isGlobal && (
+            <span className={styles.eyebrow}>
+              {plural(subTotal, 'curso', 'cursos')}
+              {lecTotal > 0 && ` · ${plural(lecTotal, 'lección', 'lecciones')}`}
+            </span>
+          )}
 
-        {isGlobal ? (
-          <>
-            <p className={styles.meta}>
-              Programa · {lecTotal} {lecTotal === 1 ? 'lección' : 'lecciones'}
-            </p>
-            {titulos.length > 0 && (
+          <h3 className={styles.title}>{title}</h3>
+
+          {isGlobal ? (
+            titulos.length > 0 && (
               <ol className={styles.programList} aria-label="Cursos del programa">
                 {titulos.slice(0, MAX_TITULOS).map((sub, i) => (
                   <li key={`${i}-${sub}`}>
@@ -112,99 +238,33 @@ export default function CourseCard({ course }: CourseCardProps) {
                 ))}
                 {titulos.length > MAX_TITULOS && (
                   <li className={styles.programMore}>
-                    y {titulos.length - MAX_TITULOS} {titulos.length - MAX_TITULOS === 1 ? 'curso más' : 'cursos más'}
+                    y {plural(titulos.length - MAX_TITULOS, 'curso más', 'cursos más')}
                   </li>
                 )}
               </ol>
-            )}
-          </>
-        ) : (
-          course.category && <p className={styles.meta}>{course.category}</p>
-        )}
-
-        {isGlobal && course.enrolled && (
-          <div className={styles.progressRow}>
-            <span
-              className={styles.track}
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={pct}
-              aria-label={`Avance ${pct} %`}
-            >
-              <span className={styles.fill} style={{ width: `${pct}%` }} />
-            </span>
-            <span>{subDone} de {subTotal}</span>
-          </div>
-        )}
-
-        <div className={styles.footer}>
-          {steps > 0 ? (
-            <span className={styles.level}>
-              <span className={styles.meter} aria-hidden="true">
-                {[1, 2, 3].map((i) => (
-                  <i key={i} className={i <= steps ? styles.meterOn : undefined} />
-                ))}
-              </span>
-              {course.level}
-            </span>
+            )
           ) : (
-            <span />
+            (course.description || course.category) && (
+              <p className={styles.desc}>{course.description || course.category}</p>
+            )
           )}
 
-          {course.rating > 0 && (course.reviews ?? 0) > 0 && (
-            <span
-              className={styles.rating}
-              aria-label={`Calificación ${course.rating.toFixed(1)} de 5, ${course.reviews} reseñas`}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 17.3l-6.2 3.7 1.7-7L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.5 4.8 1.7 7z" />
-              </svg>
-              {course.rating.toFixed(1)} <span className={styles.ratingCount}>({course.reviews})</span>
-            </span>
+          {(level || rating || (!isGlobal && lecTotal > 0)) && (
+            <div className={styles.metaRow}>
+              <span className={styles.metaLeft}>
+                {!isGlobal && lecTotal > 0 && (
+                  <span>{plural(lecTotal, 'lección', 'lecciones')}</span>
+                )}
+                {!isGlobal && lecTotal > 0 && level && <span aria-hidden="true">·</span>}
+                {level}
+              </span>
+              {rating}
+            </div>
           )}
         </div>
+
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
-
-      {subNuevos > 0 && (
-        <span className={styles.enroll}>
-          <span className={styles.enrollHint}>
-            {subNuevos === 1 ? '1 curso nuevo en este programa' : `${subNuevos} cursos nuevos en este programa`}
-          </span>
-          <span className={styles.enrollAction}>
-            Inscribirme
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14" />
-              <path d="M13 6l6 6-6 6" />
-            </svg>
-          </span>
-        </span>
-      )}
-
-      {!course.enrolled && !course.bloqueadoPorLicencia && (
-        <span className={`${styles.enroll} ${isGlobal ? styles.enrollBundle : ''}`}>
-          {isGlobal && subTotal > 0 ? (
-            /* Vista previa del avance que tendrá al inscribirse: un segmento por
-               curso incluido; al pasar el cursor se "llenan" en cascada. */
-            <span className={styles.bundle} aria-hidden="true">
-              <span className={styles.segments}>
-                {Array.from({ length: Math.min(subTotal, 12) }, (_, i) => (
-                  <i key={i} style={{ transitionDelay: `${i * 45}ms` }} />
-                ))}
-              </span>
-            </span>
-          ) : (
-            <span className={styles.enrollHint}>Empieza a tu ritmo</span>
-          )}
-          <span className={styles.enrollAction}>
-            {isGlobal ? `Inscribirme a los ${subTotal}` : 'Inscribirme'}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14" />
-              <path d="M13 6l6 6-6 6" />
-            </svg>
-          </span>
-        </span>
-      )}
     </Link>
   );
 }
