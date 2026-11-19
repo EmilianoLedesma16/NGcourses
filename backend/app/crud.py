@@ -574,29 +574,42 @@ def upsert_progreso(
     progreso_pct: int,
     umbral_completado_pct: int = UMBRAL_COMPLETADO_PCT,
 ) -> ProgresoLeccion:
-    db_prog = get_progreso(session=session, inscripcion_id=inscripcion_id, leccion_id=leccion_id)
     now = datetime.utcnow()
 
+    def _aplicar(prog: ProgresoLeccion) -> ProgresoLeccion:
+        prog.visto_seg = max(prog.visto_seg, visto_seg)
+        prog.progreso_pct = max(prog.progreso_pct, progreso_pct)
+        prog.actualizado_en = now
+        # Marcar como completado si supera el umbral
+        if not prog.completado and prog.progreso_pct >= umbral_completado_pct:
+            prog.completado = True
+            prog.completado_en = now
+        return prog
+
+    db_prog = get_progreso(session=session, inscripcion_id=inscripcion_id, leccion_id=leccion_id)
     if db_prog is None:
         db_prog = ProgresoLeccion(
             inscripcion_id=inscripcion_id,
             leccion_id=leccion_id,
-            visto_seg=visto_seg,
-            progreso_pct=progreso_pct,
+            visto_seg=0,
+            progreso_pct=0,
             actualizado_en=now,
         )
-    else:
-        db_prog.visto_seg = max(db_prog.visto_seg, visto_seg)
-        db_prog.progreso_pct = max(db_prog.progreso_pct, progreso_pct)
-        db_prog.actualizado_en = now
+    session.add(_aplicar(db_prog))
 
-    # Marcar como completado si supera el umbral
-    if not db_prog.completado and db_prog.progreso_pct >= umbral_completado_pct:
-        db_prog.completado = True
-        db_prog.completado_en = now
-
-    session.add(db_prog)
-    session.commit()
+    # El reproductor puede mandar dos registros casi a la vez para una lección
+    # nueva (avance periódico + "marcar completada"). Si otra petición creó la
+    # fila primero, el unique (inscripcion_id, leccion_id) rechaza este INSERT:
+    # se actualiza la fila existente en lugar de responder 500.
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        db_prog = get_progreso(session=session, inscripcion_id=inscripcion_id, leccion_id=leccion_id)
+        if db_prog is None:
+            raise
+        session.add(_aplicar(db_prog))
+        session.commit()
     session.refresh(db_prog)
     return db_prog
 

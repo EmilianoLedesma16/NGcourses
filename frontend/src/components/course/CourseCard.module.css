@@ -370,6 +370,131 @@ li.programMore {
   box-shadow: none;
 }
 
+/* ── Portada del programa: pila de cursos ───────────────────────────
+   La portada va al frente de una pila de hojas (una por curso, hasta dos):
+   antes de leer nada se entiende que el programa agrupa varios cursos.
+   La placa es un contenedor de tamaño, así que la pila escala con su ancho
+   Y su alto (cqw/cqh) y toma el menor: llena el espacio sin salirse ni
+   deformarse. 6rem de alto quedan libres para el badge, las hojas y la
+   pastilla. La hoja del frente es clara también en oscuro para que los
+   logos transparentes se lean, y la imagen lleva un margen interno para
+   que el borde redondeado nunca la corte. */
+.program {
+  --cc-desk: #eef2f4;
+  --cc-tile: #ffffff;
+  --cc-sheet-1: #f7f9fa;
+  --cc-sheet-2: #edf1f3;
+  --cc-sheet-edge: #dce3e7;
+  --cc-pill-ink: #ffffff;
+}
+
+:global([data-theme='dark']) .program {
+  --cc-desk: #1c242e;
+  --cc-tile: #f4f7f9;
+  --cc-sheet-1: #c9d2d8;
+  --cc-sheet-2: #9aa6af;
+  --cc-sheet-edge: #3a4553;
+  --cc-pill-ink: #0f141a;
+}
+
+.program .imageContainer {
+  container-type: size;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 2;
+  background-color: var(--cc-desk);
+}
+
+.stack {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  width: min(78cqw, calc((100cqh - 6rem) * 1.6), 24rem);
+  translate: 0 0.875rem;
+}
+
+.sheet,
+.front {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+}
+
+.sheet {
+  border: 1px solid var(--cc-sheet-edge);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  transform-origin: 50% 100%;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.sheet1 {
+  background-color: var(--cc-sheet-1);
+  transform: translate(7px, -7px) rotate(2deg);
+}
+
+.sheet2 {
+  background-color: var(--cc-sheet-2);
+  transform: translate(14px, -13px) rotate(4deg);
+}
+
+.front {
+  overflow: hidden;
+  background-color: var(--cc-tile);
+  border: 1px solid var(--color-border-default);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 10px 22px -12px rgba(15, 23, 42, 0.3);
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Zona segura: el logo nunca toca el borde redondeado ni la pastilla. */
+.front img {
+  object-fit: contain;
+  padding: max(9%, 1.125rem) max(10%, 1.25rem);
+}
+
+.pill {
+  position: absolute;
+  right: 0.75rem;
+  bottom: -0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--cc-accent-strong);
+  color: var(--cc-pill-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 0 0 3px var(--cc-desk);
+}
+
+.pill svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Sin zoom en la portada: las hojas se abren en abanico. */
+.card:hover .front img,
+.card:hover .front [class*='monogram'] {
+  transform: none;
+}
+
+.card:hover .sheet1 {
+  transform: translate(10px, -9px) rotate(4deg);
+}
+
+.card:hover .sheet2 {
+  transform: translate(16px, -14px) rotate(6deg);
+}
+
+.card:hover .front {
+  transform: translateY(-2px) rotate(-1deg);
+}
+
 /* ── Programa en 2 columnas ─────────────────────────────────────────
    Cuando el grid tiene espacio para 2 columnas (≥ 34rem), el curso global
    ocupa ambas en horizontal: portada a la izquierda y su lista a la derecha.
@@ -381,11 +506,14 @@ li.programMore {
     flex-direction: row;
   }
 
+  /* 46 %: con 4 columnas la tarjeta mide ~600 px y con 42 % la pila
+     quedaba chica. min-height parejo para que las pilas midan parecido
+     aunque un programa tenga menos cursos en la lista. */
   .program .imageContainer {
-    flex: 0 0 42%;
+    flex: 0 0 46%;
     width: auto;
     aspect-ratio: auto;
-    min-height: 13rem;
+    min-height: 14rem;
   }
 
   .program .body {
@@ -402,16 +530,42 @@ li.programMore {
   }
 }
 
+/* Con un número impar de columnas (3 o 5), dos programas de 2 columnas no
+   llenan la fila y queda un hueco al lado de cada uno. Ahí el programa ocupa
+   la fila completa. Umbrales = n × 16.25rem + (n − 1) × 1.5rem del grid. */
+@container (min-width: 51.75rem) and (max-width: 69.49rem) {
+  .program {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (min-width: 86.25rem) and (max-width: 103.49rem) {
+  .program {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card,
   .imageContainer img,
   .cta,
   .cta svg,
-  .segments i {
+  .segments i,
+  .sheet,
+  .front {
     transition: none !important;
     transition-delay: 0s !important;
   }
 
+  .card:hover .sheet1 {
+    transform: translate(7px, -7px) rotate(2deg);
+  }
+
+  .card:hover .sheet2 {
+    transform: translate(14px, -13px) rotate(4deg);
+  }
+
+  .card:hover .front,
   .card:hover img,
   .card:hover [class*='monogram'],
   .card:hover .cta svg {
