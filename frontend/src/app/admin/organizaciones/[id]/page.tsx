@@ -49,6 +49,7 @@ interface Licencia {
 interface Curso {
   id: string;
   titulo: string;
+  curso_padre_id?: string | null;
 }
 
 interface UserLite {
@@ -414,7 +415,9 @@ export default function OrganizacionDetallePage() {
               <select className={styles.formInput} value={cursoAAsignar} onChange={(e) => setCursoAAsignar(e.target.value)}>
                 <option value="">-- Seleccionar curso --</option>
                 {cursosDisponibles
-                  .filter((c) => !licenciadosIds.has(c.id))
+                  // Un curso que ya viene dentro de un programa licenciado no se
+                  // ofrece aparte: la licencia del programa lo cubre.
+                  .filter((c) => !licenciadosIds.has(c.id) && !(c.curso_padre_id && licenciadosIds.has(c.curso_padre_id)))
                   .map((c) => (
                     <option key={c.id} value={c.id}>{c.titulo}</option>
                   ))}
