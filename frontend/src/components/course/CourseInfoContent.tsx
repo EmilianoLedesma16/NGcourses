@@ -157,7 +157,13 @@ export default function CourseInfoContent({
 }: CourseInfoContentProps) {
   const displayTitle = padre ? sinPrefijo(course.title, padre.titulo) : cleanTitle(course.title);
   const price = formatPrice(course.precio, course.moneda);
-  const requierePago = !price.isFree;
+  // Solo se cobra un curso NextGen con precio al que el alumno no tiene acceso por
+  // otra vía. Si su empresa lo licenció o ya lo pagó (puedeInscribirse), se inscribe
+  // sin pagar; un curso RAM nunca se vende (su acceso es por licencia).
+  const requierePago = !price.isFree
+    && course.marca !== 'ram'
+    && !course.esDeMiOrg
+    && !course.puedeInscribirse;
   const completedIds = new Set(progress?.completedLessonIds ?? []);
   // Si algún video trae miniatura, el temario usa el recuadro 16:9 en todas las filas.
   const hasThumbs = course.syllabus.some((m) => m.lessons.some((l) => !!l.thumbnailUrl));

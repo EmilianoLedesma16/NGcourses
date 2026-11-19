@@ -28,7 +28,7 @@ from fastapi import APIRouter, HTTPException
 
 from app import crud
 from app.api.deps import AdminOrSuperuser, CurrentUser, SessionDep
-from app.models._enums import EstadoPago
+from app.models._enums import EstadoPago, MarcaCurso
 from app.models.contenido import Curso
 from app.models.inscripcion import Inscripcion
 from app.models.pago import (
@@ -75,6 +75,22 @@ def crear_orden(
         )
 
     curso = _validar_curso_pagable(session, body.curso_id)
+
+    # Solo se venden cursos NEXTGEN: el acceso a un curso RAM es por licencia de la
+    # organización o invitación, nunca por compra individual.
+    if curso.marca != MarcaCurso.NEXTGEN:
+        raise HTTPException(
+            status_code=400,
+            detail="Este curso no está a la venta; el acceso es por licencia de tu empresa",
+        )
+
+    # Si su empresa ya lo cubre con una licencia activa, no tiene que pagarlo.
+    org_ids = crud.get_org_ids_of_user(session=session, user_id=current_user.id)
+    if curso.id in crud.cursos_con_licencia_activa_orgs(session=session, org_ids=org_ids):
+        raise HTTPException(
+            status_code=409,
+            detail="Tu empresa ya cubre este curso; inscríbete sin pagar",
+        )
 
     # Si el alumno ya tiene un pago COMPLETADO o CORTESIA para este curso, no permitir otra orden.
     if crud.usuario_tiene_pago_completado(
