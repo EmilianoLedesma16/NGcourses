@@ -1,11 +1,5 @@
 import { z } from 'zod';
 
-export const CreateUserSchema = z.object({
-  email: z.string().email('Correo electrónico inválido'),
-  full_name: z.string().trim().min(2, 'Ingresa el nombre completo').max(255),
-  organizacion_id: z.string().uuid('Selecciona una organización'),
-});
-
 export const EditUserSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
   full_name: z.string().max(255).optional().or(z.literal('')),
@@ -19,5 +13,4 @@ export const EditUserSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-export type CreateUserData = z.infer<typeof CreateUserSchema>;
 export type EditUserData = z.infer<typeof EditUserSchema>;

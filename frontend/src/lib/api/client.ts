@@ -326,9 +326,6 @@ export const usersApi = {
   },
   get: (id: string) => apiClient.get(`/api/v1/users/${id}`),
   create: (data: unknown) => apiClient.post('/api/v1/users/', data),
-  /** Alta de empleado (estudiante) ligado a una organización; envía correo de activación. */
-  createEmpresa: (data: { email: string; full_name?: string | null; organizacion_id: string }) =>
-    apiClient.post('/api/v1/users/empresa', data),
   update: (id: string, data: unknown) => apiClient.patch(`/api/v1/users/${id}`, data),
   updateMe: (data: { email?: string; telefono?: string | null; full_name?: string }) => apiClient.patch('/api/v1/users/me', data),
   changePassword: (data: { current_password: string; new_password: string }) =>
@@ -464,8 +461,6 @@ export const supervisorApi = {
   miOrganizacion: () => apiClient.get('/api/v1/supervisor/mi-organizacion'),
   cursos: () => apiClient.get('/api/v1/supervisor/cursos'),
   usuarios: () => apiClient.get('/api/v1/supervisor/usuarios'),
-  crearUsuario: (data: { email: string; full_name?: string; telefono?: string }) =>
-    apiClient.post('/api/v1/supervisor/usuarios', data),
   quitarUsuario: (user_id: string) => apiClient.delete(`/api/v1/supervisor/usuarios/${user_id}`),
   invitar: (data: { curso_id: string; emails: string[] }) =>
     apiClient.post('/api/v1/supervisor/invitaciones', data),

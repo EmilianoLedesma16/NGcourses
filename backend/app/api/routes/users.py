@@ -26,7 +26,6 @@ from app.models import (
     User,
     UserCreate,
     UserPublic,
-    UserRegister,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
@@ -111,15 +110,35 @@ def create_user(*, session: SessionDep, user_in: UserAltaAdmin, current_user: Ad
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system.",
+            detail="Ya existe un usuario con ese correo.",
         )
+
+    # Organización opcional: solo un alumno puede ligarse a una empresa como
+    # MIEMBRO (los supervisores se crean desde Organizaciones). Se valida antes
+    # de crear la cuenta para no dejar usuarios a medias.
+    if user_in.organizacion_id is not None:
+        if user_in.rol != RolUsuario.ESTUDIANTE:
+            raise HTTPException(
+                status_code=400,
+                detail="Solo un alumno puede pertenecer a una organización como miembro.",
+            )
+        if not session.get(Organizacion, user_in.organizacion_id):
+            raise HTTPException(status_code=404, detail="La organización indicada no existe.")
 
     # Sin contraseña en el alta: se guarda un valor aleatorio que nadie conoce
     # (la columna no admite nulos) y el usuario crea la suya al activar.
     user = crud.create_user(
         session=session,
-        user_create=UserCreate(**user_in.model_dump(), password=secrets.token_urlsafe(24)),
+        user_create=UserCreate(
+            **user_in.model_dump(exclude={"organizacion_id"}),
+            password=secrets.token_urlsafe(24),
+        ),
     )
+    if user_in.organizacion_id is not None:
+        crud.add_user_to_organizacion(
+            session=session, org_id=user_in.organizacion_id, user_id=user.id,
+            rol_org=RolOrganizacion.MIEMBRO,
+        )
 
     # Toda cuenta nueva nace pendiente de activación: el usuario establece su
     # propia contraseña por el enlace del correo (/activar). La contraseña NO se
@@ -289,23 +308,6 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     return Message(message="User deleted successfully")
 
 
-@router.post("/signup", response_model=UserPublic)
-@limiter.limit("10/minute")
-def register_user(request: Request, session: SessionDep, user_in: UserRegister) -> Any:
-    """
-    Create new user without the need to be logged in.
-    """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system",
-        )
-    user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
-    return user
-
-
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
@@ -415,15 +417,6 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
-# ── RF-12: Alta de usuarios por empresa ────────────────────────────────────────
-
-class UserEmpresaCreate(SQLModel):
-    email: EmailStr
-    full_name: str | None = None
-    # Un empleado siempre pertenece a una organización (alta de empleado de RF-12).
-    organizacion_id: uuid.UUID
-
-
 class ActivarCuentaBody(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
@@ -431,53 +424,6 @@ class ActivarCuentaBody(SQLModel):
 
 class SolicitarReactivacionBody(SQLModel):
     email: EmailStr
-
-
-@router.post("/empresa", dependencies=[Depends(require_admin_or_superuser)], response_model=UserPublic)
-def create_user_empresa(*, session: SessionDep, user_in: UserEmpresaCreate) -> Any:
-    """
-    Crea un usuario empresarial con estado pendiente_activacion.
-    Envía correo con link de activación (72h).
-    """
-    existing = crud.get_user_by_email(session=session, email=user_in.email)
-    if existing:
-        raise HTTPException(status_code=400, detail="Ya existe un usuario con ese correo.")
-
-    organizacion = session.get(Organizacion, user_in.organizacion_id)
-    if not organizacion:
-        raise HTTPException(status_code=404, detail="La organización indicada no existe.")
-
-    token = secrets.token_urlsafe(32)
-    placeholder_password = secrets.token_urlsafe(16)
-
-    user = User(
-        email=user_in.email,
-        full_name=user_in.full_name,
-        hashed_password=get_password_hash(placeholder_password),
-        rol=RolUsuario.ESTUDIANTE,
-        estado=EstadoUsuario.PENDIENTE_ACTIVACION,
-        is_active=False,
-        token_activacion=hash_token(token),
-        token_activacion_expira=datetime.now(timezone.utc) + timedelta(hours=72),
-    )
-    session.add(user)
-    session.flush()  # INSERT user antes de la membresía para satisfacer el FK
-
-    membresia = UsuarioOrganizacion(
-        organizacion_id=user_in.organizacion_id,
-        usuario_id=user.id,
-        rol_org=RolOrganizacion.MIEMBRO,
-    )
-    session.add(membresia)
-
-    session.commit()
-    session.refresh(user)
-
-    if settings.emails_enabled:
-        email_data = generate_activacion_email(email_to=user.email, token=token)
-        send_email(email_to=user.email, subject=email_data.subject, html_content=email_data.html_content)
-
-    return user
 
 
 @router.post("/activar", response_model=Message)

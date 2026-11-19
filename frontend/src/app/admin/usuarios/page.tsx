@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { usersApi } from '@/lib/api/client';
+import { organizacionesApi, usersApi } from '@/lib/api/client';
 import { getCurrentUser } from '@/lib/auth';
 import { useFeatureFlags } from '@/lib/hooks/useFeatureFlags';
 import PageHeader from '@/components/admin/PageHeader';
@@ -15,7 +14,16 @@ interface CreateUserForm {
   full_name: string;
   rol: string;
   telefono: string;
+  /** Solo alumnos: '' = sin organización. */
+  organizacion_id: string;
 }
+
+interface OrgOption {
+  id: string;
+  nombre: string;
+}
+
+const EMPTY_FORM: CreateUserForm = { email: '', full_name: '', rol: 'estudiante', telefono: '', organizacion_id: '' };
 
 interface ApiUser {
   id: string;
@@ -40,7 +48,6 @@ const ROLES: Record<string, string> = {
 const ITEMS_PER_PAGE = 10;
 
 export default function UsuariosPage() {
-  const router = useRouter();
   const { flags } = useFeatureFlags();
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [total, setTotal] = useState(0);
@@ -49,7 +56,8 @@ export default function UsuariosPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateUserForm>({ email: '', full_name: '', rol: 'estudiante', telefono: '' });
+  const [createForm, setCreateForm] = useState<CreateUserForm>(EMPTY_FORM);
+  const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState('');
   const [reenviarId, setReenviarId] = useState<string | null>(null);
@@ -57,6 +65,14 @@ export default function UsuariosPage() {
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
   // Solo el superusuario puede suspender/activar cuentas de administrador.
   const [isSuperuser, setIsSuperuser] = useState(false);
+
+  // Organizaciones para ligar al alumno; se cargan al abrir el formulario.
+  useEffect(() => {
+    if (!showCreateModal) return;
+    organizacionesApi.list({ limit: 200 })
+      .then((r) => setOrgs((r as { data: OrgOption[] }).data))
+      .catch(() => setOrgs([]));
+  }, [showCreateModal]);
 
   useEffect(() => {
     getCurrentUser().then((u) => setIsSuperuser(!!u?.is_superuser)).catch(() => {});
@@ -147,9 +163,11 @@ export default function UsuariosPage() {
         full_name: createForm.full_name || null,
         rol: createForm.rol,
         telefono: createForm.telefono || null,
+        organizacion_id:
+          createForm.rol === 'estudiante' && createForm.organizacion_id ? createForm.organizacion_id : null,
       });
       setShowCreateModal(false);
-      setCreateForm({ email: '', full_name: '', rol: 'estudiante', telefono: '' });
+      setCreateForm(EMPTY_FORM);
       fetchUsers();
     } catch (err: unknown) {
       const apiErr = err as { detail?: string };
@@ -166,12 +184,6 @@ export default function UsuariosPage() {
         subtitle="Cuentas de la plataforma: roles, estado y accesos"
         actions={
           <>
-            <button className="ng-btn ng-btn-secondary" onClick={() => router.push('/admin/usuarios/crear')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              Alta de empleado
-            </button>
             <button className="ng-btn ng-btn-primary" onClick={() => { setShowCreateModal(true); setCreateError(''); }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
@@ -383,7 +395,7 @@ export default function UsuariosPage() {
                 <label className={styles.formLabel}>Rol</label>
                 <select
                   value={createForm.rol}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, rol: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, rol: e.target.value, organizacion_id: '' }))}
                   className={styles.formInput}
                 >
                   <option value="estudiante">Estudiante</option>
@@ -391,6 +403,27 @@ export default function UsuariosPage() {
                   <option value="administrador">Administrador</option>
                 </select>
               </div>
+              {createForm.rol === 'estudiante' && (
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="nuevo-org">Organización</label>
+                  <select
+                    id="nuevo-org"
+                    value={createForm.organizacion_id}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, organizacion_id: e.target.value }))}
+                    className={styles.formInput}
+                  >
+                    <option value="">Sin organización (alumno individual)</option>
+                    {orgs.map((o) => (
+                      <option key={o.id} value={o.id}>{o.nombre}</option>
+                    ))}
+                  </select>
+                  <p className={styles.formHint} style={{ margin: '6px 0 0' }}>
+                    Si es empleado de una empresa, elígela: verá los cursos que licencia su organización.
+                    Los supervisores se crean desde{' '}
+                    <Link href="/admin/organizaciones">Organizaciones</Link>.
+                  </p>
+                </div>
+              )}
               <p className={styles.formHint}>
                 No necesitas definir contraseña: le enviaremos un correo para activar su cuenta y crear la suya.
               </p>
