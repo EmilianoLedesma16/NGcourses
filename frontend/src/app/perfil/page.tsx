@@ -1,6 +1,6 @@
 'use client';
 
-import { avatarOf, avatarFileError, AVATAR_ACCEPT } from '@/lib/avatar';
+import { avatarOf, avatarFileError, avisarPerfilActualizado, AVATAR_ACCEPT } from '@/lib/avatar';
 import React, { useEffect, useRef, useState } from 'react';
 import ProfileContent from '@/components/profile/ProfileContent';
 import { authApi, cursosApi, inscripcionesApi, progresoApi, usersApi } from '@/lib/api/client';
@@ -177,6 +177,7 @@ export default function PerfilPage() {
       const initials = nombre.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('');
       setRawFullName(updated.full_name || '');
       setProfile((p) => ({ ...p, email: updated.email, phone: updated.telefono || '', name: nombre, initials: initials || 'U' }));
+      avisarPerfilActualizado({ full_name: updated.full_name, email: updated.email });
       setEditOpen(false);
     } catch (err: unknown) {
       const apiErr = err as { detail?: string };
@@ -220,6 +221,7 @@ export default function PerfilPage() {
     try {
       const actualizado = (await usersApi.uploadAvatar(file)) as { avatar_url?: string | null };
       setAvatarUrl(actualizado.avatar_url ?? null);
+      avisarPerfilActualizado({ avatar_url: actualizado.avatar_url ?? null });
     } catch (err) {
       setAvatarError((err as { detail?: string })?.detail || 'No se pudo subir la foto. Inténtalo de nuevo.');
     }

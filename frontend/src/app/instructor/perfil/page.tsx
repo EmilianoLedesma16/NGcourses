@@ -1,6 +1,6 @@
 'use client';
 
-import { avatarOf, avatarFileError, AVATAR_ACCEPT } from '@/lib/avatar';
+import { avatarOf, avatarFileError, avisarPerfilActualizado, AVATAR_ACCEPT } from '@/lib/avatar';
 import React, { useEffect, useRef, useState } from 'react';
 import { authApi, cursosApi, usersApi } from '@/lib/api/client';
 import styles from './page.module.css';
@@ -125,6 +125,7 @@ export default function PerfilInstructorPage() {
     try {
       const actualizado = (await usersApi.uploadAvatar(file)) as { avatar_url?: string | null };
       setAvatarUrl(actualizado.avatar_url ?? null);
+      avisarPerfilActualizado({ avatar_url: actualizado.avatar_url ?? null });
     } catch (err) {
       setAvatarError((err as { detail?: string })?.detail || 'No se pudo subir la foto. Inténtalo de nuevo.');
     }

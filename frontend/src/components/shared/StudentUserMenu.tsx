@@ -1,7 +1,7 @@
 'use client';
 
-import { avatarOf } from '@/lib/avatar';
-import { useEffect, useState } from 'react';
+import { avatarOf, conCambioDePerfil, useCambiosDePerfil, type PerfilCambio } from '@/lib/avatar';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, logout } from '@/lib/auth';
@@ -47,6 +47,13 @@ export default function StudentUserMenu() {
       active = false;
     };
   }, []);
+
+  // Foto o nombre cambiados en la página de perfil: se reflejan sin recargar.
+  const aplicarCambioDePerfil = useCallback(
+    (c: PerfilCambio) => setUser((prev) => (prev ? conCambioDePerfil(prev, c) : prev)),
+    [],
+  );
+  useCambiosDePerfil(aplicarCambioDePerfil);
 
   if (!user) return null;
 

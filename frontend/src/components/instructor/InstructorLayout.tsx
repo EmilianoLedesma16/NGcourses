@@ -1,7 +1,7 @@
 'use client';
 
-import { avatarOf } from '@/lib/avatar';
-import React, { useState, useEffect } from 'react';
+import { avatarOf, conCambioDePerfil, useCambiosDePerfil, type PerfilCambio } from '@/lib/avatar';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorHeader } from './InstructorHeader';
 import { InstructorSidebar } from './InstructorSidebar';
@@ -37,6 +37,13 @@ export const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) 
       router.replace('/');
     });
   }, [router]);
+
+  // Foto o nombre cambiados en la página de perfil: se reflejan sin recargar.
+  const aplicarCambioDePerfil = useCallback(
+    (c: PerfilCambio) => setHeaderUser((prev) => (prev ? conCambioDePerfil(prev, c) : prev)),
+    [],
+  );
+  useCambiosDePerfil(aplicarCambioDePerfil);
 
   return (
     <div className={styles.container}>
