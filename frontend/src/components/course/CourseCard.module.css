@@ -370,6 +370,71 @@ li.programMore {
   box-shadow: none;
 }
 
+/* ── Portada del programa: placa técnica + etiqueta ──────────────────
+   La portada de un programa suele ser un logo con texto: no se puede
+   recortar (object-fit: cover) ni ampliar como una foto. Va montada como
+   etiqueta 16:10 (misma proporción que las portadas normales) sobre una
+   placa con la retícula de CourseCover grid; la placa absorbe el tamaño
+   variable de la columna y la imagen nunca cambia de forma. La etiqueta es
+   clara también en oscuro para que los logos transparentes se lean. */
+.program {
+  --cc-plate: #f2f7f7;
+  --cc-plate-line: rgba(0, 150, 143, 0.11);
+  --cc-tile: #ffffff;
+}
+
+:global([data-theme='dark']) .program {
+  --cc-plate: #141b22;
+  --cc-plate-line: rgba(61, 193, 204, 0.1);
+  --cc-tile: #f4f7f9;
+}
+
+.program .imageContainer:has(.tile) {
+  display: grid;
+  place-items: center;
+  /* El alto lo da la etiqueta + el aire del badge; con 16:10 fijo aquí la
+     etiqueta no cabría en tarjetas angostas. */
+  aspect-ratio: auto;
+  padding: 2.5rem 1rem 1rem;
+  background-color: var(--cc-plate);
+  background-image:
+    linear-gradient(var(--cc-plate-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cc-plate-line) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+}
+
+.tile {
+  width: 100%;
+  max-width: 14rem;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background-color: var(--cc-tile);
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 6px 16px -8px rgba(15, 23, 42, 0.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tile img {
+  object-fit: contain;
+  padding: 0.875rem 1rem;
+}
+
+/* Sin zoom: la etiqueta se eleva en lugar de ampliar el logo. */
+.card:hover .tile img {
+  transform: none;
+}
+
+.card:hover .tile {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 12px 24px -10px rgba(15, 23, 42, 0.28);
+}
+
 /* ── Programa en 2 columnas ─────────────────────────────────────────
    Cuando el grid tiene espacio para 2 columnas (≥ 34rem), el curso global
    ocupa ambas en horizontal: portada a la izquierda y su lista a la derecha.
@@ -386,6 +451,14 @@ li.programMore {
     width: auto;
     aspect-ratio: auto;
     min-height: 13rem;
+  }
+
+  .program .imageContainer:has(.tile) {
+    padding: 2.75rem 1.25rem 1.25rem;
+  }
+
+  .program .tile {
+    max-width: 17rem;
   }
 
   .program .body {
@@ -407,11 +480,13 @@ li.programMore {
   .imageContainer img,
   .cta,
   .cta svg,
-  .segments i {
+  .segments i,
+  .tile {
     transition: none !important;
     transition-delay: 0s !important;
   }
 
+  .card:hover .tile,
   .card:hover img,
   .card:hover [class*='monogram'],
   .card:hover .cta svg {

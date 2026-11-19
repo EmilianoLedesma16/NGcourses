@@ -71,6 +71,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   const pct = lecTotal > 0 ? Math.round(((course.leccionesCompletadas ?? 0) / lecTotal) * 100) : 0;
   const terminado = !!course.enrolled && lecTotal > 0 && pct >= 100;
   const locked = !!course.bloqueadoPorLicencia;
+  const hasCover = !!course.image && !course.image.endsWith('/placeholder-course.jpg');
 
   const level = steps > 0 && (
     <span className={styles.level}>
@@ -178,13 +179,21 @@ export default function CourseCard({ course }: CourseCardProps) {
   return (
     <Link href={`/curso/${course.id}`} className={`${styles.card} ${isGlobal ? styles.program : ''}`}>
       <div className={styles.imageContainer}>
-        <CourseCover
-          src={course.image}
-          title={course.title}
-          caption={course.category}
-          variant="grid"
-          tone={course.marca === 'ram' ? 'ram' : 'nextgen'}
-        />
+        {isGlobal && hasCover ? (
+          // Programa: la portada va montada como etiqueta 16:10 sobre la placa.
+          // La placa absorbe el tamaño variable; la imagen nunca se recorta.
+          <div className={styles.tile}>
+            <CourseCover src={course.image} title={course.title} />
+          </div>
+        ) : (
+          <CourseCover
+            src={course.image}
+            title={course.title}
+            caption={course.category}
+            variant="grid"
+            tone={course.marca === 'ram' ? 'ram' : 'nextgen'}
+          />
+        )}
         <div className={styles.badges}>
           {isGlobal && subTotal > 0 && (
             <span className={`${styles.badge} ${styles.badgeProgram}`}>
