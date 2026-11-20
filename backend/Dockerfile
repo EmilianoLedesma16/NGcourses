@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.12
 
 ENV PYTHONUNBUFFERED=1
 
@@ -6,7 +6,7 @@ WORKDIR /app/
 
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
-COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.6 /uv /uvx /bin/
 
 # Place executables in the environment at the front of the path
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
@@ -41,7 +41,7 @@ COPY ./tests /app/tests
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync
+    uv sync --frozen
 
 RUN mkdir -p /app/app/media/covers /app/app/media/recursos /app/app/media/certificados
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
