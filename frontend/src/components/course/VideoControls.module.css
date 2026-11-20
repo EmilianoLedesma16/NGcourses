@@ -294,3 +294,10 @@
   font-size: 0.925rem;
   font-weight: 700;
 }
+
+.autoHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}

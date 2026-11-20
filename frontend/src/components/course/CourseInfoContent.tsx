@@ -1,19 +1,29 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import CourseCover from '@/components/shared/CourseCover';
 import StudentHeader from '@/components/shared/StudentHeader';
+import Toast, { type ToastData } from '@/components/shared/Toast';
 import type { CourseInfo, SyllabusLesson } from '@/types/course';
 import PayPalCheckout from './PayPalCheckout';
 import CourseReviews from './CourseReviews';
-import LessonThumb from './LessonThumb';
+import CourseSyllabus, {
+  KIND_LABEL,
+  KindIcon,
+  cleanTitle,
+  countKinds,
+  findNextLesson,
+  formatTotal,
+  plural,
+  sinPrefijo,
+  type LessonKind,
+} from './CourseSyllabus';
 import styles from './CourseInfoContent.module.css';
-import globalStyles from './GlobalCourseContent.module.css';
-import { sinPrefijo } from './GlobalCourseContent';
 import BackLink from '@/components/shared/BackLink';
 
-/** Proceso (curso global) al que pertenece este curso, y su lugar en él. */
+/** Proceso (curso global) al que pertenece un curso, y su lugar en él. */
 export interface CoursePadre {
   id: string;
   titulo: string;
@@ -47,32 +57,14 @@ interface CourseInfoContentProps {
   viewCourseLabel?: string;
   /** Vista del alumno real: barra de navegación del alumno y ruta al Dashboard. */
   showUserMenu?: boolean;
-  /** Si el curso está dentro de un curso global. Sin valor, la ficha es la de siempre. */
+  /**
+   * Proceso al que pertenece (solo lo usa la vista previa del admin). El alumno
+   * ve los cursos de un proceso dentro de la página del proceso.
+   */
   padre?: CoursePadre | null;
 }
 
-type LessonKind = 'video' | 'lectura' | 'quiz';
-
-const KIND_LABEL: Record<LessonKind, [string, string]> = {
-  video: ['video', 'videos'],
-  lectura: ['lectura', 'lecturas'],
-  quiz: ['cuestionario', 'cuestionarios'],
-};
-
-const KIND_NAME: Record<LessonKind, string> = {
-  video: 'Video',
-  lectura: 'Lectura',
-  quiz: 'Cuestionario',
-};
-
 const LEVEL_STEPS: Record<string, number> = { Principiante: 1, Intermedio: 2, Avanzado: 3 };
-
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const cleanTitle = (t: string) => t.trim().replace(/\.$/, '');
-/** "Módulo 1: Fundamentos de Excel." → "Fundamentos de Excel" (el número ya va en el recuadro). */
-const moduleTitle = (t: string) => cleanTitle(t.replace(/^\s*m[oó]dulo\s*\d+\s*[:.\-–]\s*/i, '')) || cleanTitle(t);
-const kindOf = (l: SyllabusLesson): LessonKind =>
-  l.tipo === 'quiz' || l.tipo === 'lectura' ? l.tipo : 'video';
 
 function formatPrice(precio: number | null | undefined, moneda?: string): { label: string; isFree: boolean } {
   if (precio == null || Number(precio) === 0) return { label: 'Gratis', isFree: true };
@@ -81,66 +73,9 @@ function formatPrice(precio: number | null | undefined, moneda?: string): { labe
   return { label: `$${entero} ${moneda || 'MXN'}`, isFree: false };
 }
 
-function formatDuration(totalSec: number): string {
-  const min = Math.floor(totalSec / 60);
-  const sec = Math.round(totalSec % 60);
-  return `${min}:${sec.toString().padStart(2, '0')}`;
-}
-
-/** Duración total legible ("1 h 30 min", "45 min") a partir de segundos. */
-function formatTotal(totalSec: number): string {
-  const totalMin = Math.round(totalSec / 60);
-  if (totalMin < 60) return `${totalMin} min`;
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return m ? `${h} h ${m} min` : `${h} h`;
-}
-
-function countKinds(lessons: SyllabusLesson[]): Record<LessonKind, number> {
-  const c: Record<LessonKind, number> = { video: 0, lectura: 0, quiz: 0 };
-  lessons.forEach((l) => { c[kindOf(l)] += 1; });
-  return c;
-}
-
-const mixLabel = (c: Record<LessonKind, number>) =>
-  (Object.keys(KIND_LABEL) as LessonKind[])
-    .filter((k) => c[k] > 0)
-    .map((k) => plural(c[k], ...KIND_LABEL[k]))
-    .join(' · ');
-
-function KindIcon({ kind }: { kind: LessonKind }) {
-  if (kind === 'quiz') {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden="true">
-        <rect x="5" y="4.5" width="14" height="16.5" rx="2" />
-        <path strokeLinejoin="round" d="M9 3h6v3H9z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 11.5l1.25 1.25L12 10.5M14 12h2M8.5 16.5l1.25 1.25L12 15.5M14 17h2" />
-      </svg>
-    );
-  }
-  if (kind === 'lectura') {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden="true">
-        <path strokeLinejoin="round" d="M7 3h7l5 5v13H7z" />
-        <path strokeLinecap="round" d="M14 3v5h5M10 13h6M10 17h6" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden="true">
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="M10 9.5v5l4-2.5z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function CheckCircle() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={styles.lessonDoneIcon}>
-      <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.2 14.2L6.6 12l1.4-1.4 2.8 2.8 5.2-5.2 1.4 1.4z" />
-    </svg>
-  );
-}
+/** Agrega un parámetro a un href que puede o no traer ya "?". */
+export const withParam = (href: string, key: string, value: string) =>
+  `${href}${href.includes('?') ? '&' : '?'}${key}=${encodeURIComponent(value)}`;
 
 export default function CourseInfoContent({
   course,
@@ -157,6 +92,9 @@ export default function CourseInfoContent({
   showUserMenu,
   padre = null,
 }: CourseInfoContentProps) {
+  const router = useRouter();
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const closeToast = useCallback(() => setToast(null), []);
   const displayTitle = padre ? sinPrefijo(course.title, padre.titulo) : cleanTitle(course.title);
   const price = formatPrice(course.precio, course.moneda);
   // Solo se cobra un curso NextGen con precio al que el alumno no tiene acceso por
@@ -167,40 +105,38 @@ export default function CourseInfoContent({
     && !course.esDeMiOrg
     && !course.puedeInscribirse;
   const completedIds = new Set(progress?.completedLessonIds ?? []);
-  // Si algún video trae miniatura, el temario usa el recuadro 16:9 en todas las filas.
-  const hasThumbs = course.syllabus.some((m) => m.lessons.some((l) => !!l.thumbnailUrl));
-
-  // Lección siguiente: la primera sin completar en orden de módulo/lección.
-  let nextLessonKey: string | null = null;
-  let nextLessonTitle: string | null = null;
-  if (isEnrolled) {
-    outer: for (let m = 0; m < course.syllabus.length; m++) {
-      const lessons = course.syllabus[m].lessons;
-      for (let i = 0; i < lessons.length; i++) {
-        if (!lessons[i].id || !completedIds.has(lessons[i].id!)) {
-          nextLessonKey = `${m}-${i}`;
-          nextLessonTitle = cleanTitle(lessons[i].title);
-          break outer;
-        }
-      }
-    }
-  }
-  const nextModuleIndex = nextLessonKey ? Number(nextLessonKey.split('-')[0]) : 0;
-
-  const [openModules, setOpenModules] = useState<Set<number>>(new Set([nextModuleIndex]));
+  const next = isEnrolled ? findNextLesson(course.syllabus, completedIds) : null;
+  const nextLessonTitle = next ? cleanTitle(next.lesson.title) : null;
   const [descExpanded, setDescExpanded] = useState(false);
+  const reviewHref = viewCourseHref ?? `/curso/${course.id}/videos?from=supervisor`;
 
-  const toggleModule = (index: number) => {
-    setOpenModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
-    });
+  // Clic en una lección del temario: quien tiene acceso entra directo a esa
+  // lección; a quien no, se le dice qué hacer para verla.
+  const handleLessonClick = (lesson: SyllabusLesson) => {
+    if (!lesson.id) return;
+    if (viewOnlyMode) {
+      router.push(withParam(reviewHref, 'leccion', lesson.id));
+      return;
+    }
+    if (isEnrolled) {
+      router.push(`/curso/${course.id}/videos?leccion=${lesson.id}`);
+      return;
+    }
+    const id = Date.now();
+    if (requierePago) {
+      setToast({ id, title: 'Compra el curso para ver esta lección', message: `Acceso completo por ${price.label}.` });
+    } else if (bloqueadoPorLicencia) {
+      setToast({ id, title: 'Este curso no está disponible', message: 'Tu organización no lo ha adquirido.' });
+    } else if (onInscribirse) {
+      setToast({
+        id,
+        title: 'Inscríbete para ver esta lección',
+        message: 'Es gratis y empiezas al instante.',
+        actionLabel: 'Inscribirme',
+        onAction: onInscribirse,
+      });
+    }
   };
-  const allOpen = course.syllabus.length > 0 && openModules.size === course.syllabus.length;
-  const toggleAll = () =>
-    setOpenModules(allOpen ? new Set() : new Set(course.syllabus.map((_, i) => i)));
 
   const lessonsSec = course.syllabus.reduce(
     (acc, m) => acc + m.lessons.reduce((a, l) => a + (l.durationSec ?? 0), 0),
@@ -261,7 +197,7 @@ export default function CourseInfoContent({
   let actionBody: ReactNode;
   if (viewOnlyMode) {
     actionBody = (
-      <Link href={viewCourseHref ?? `/curso/${course.id}/videos?from=supervisor`} className={`${styles.btn} ${styles.btnPrimary}`}>
+      <Link href={reviewHref} className={`${styles.btn} ${styles.btnPrimary}`}>
         {viewCourseLabel}
       </Link>
     );
@@ -297,8 +233,11 @@ export default function CourseInfoContent({
             <b>{nextLessonTitle}</b>
           </p>
         )}
-        <Link href={`/curso/${course.id}/videos`} className={`${styles.btn} ${styles.btnPrimary}`}>
-          {started ? 'Continuar' : 'Empezar curso'}
+        <Link
+          href={next?.lesson.id ? `/curso/${course.id}/videos?leccion=${next.lesson.id}` : `/curso/${course.id}/videos`}
+          className={`${styles.btn} ${styles.btnPrimary}`}
+        >
+          {courseDone ? 'Repasar curso' : started ? 'Continuar' : 'Empezar curso'}
           {ArrowIcon}
         </Link>
         {course.esDeMiOrg && <p className={styles.licenseNote}>Incluido en la licencia de tu empresa</p>}
@@ -372,12 +311,7 @@ export default function CourseInfoContent({
         {showUserMenu ? (
           <nav className={styles.crumbs} aria-label="Ruta">
             <Link href={backHref}>Dashboard</Link>
-            {padre ? (
-              <>
-                <span aria-hidden="true">/</span>
-                <Link href={`/curso/${padre.id}`}>{cleanTitle(padre.titulo)}</Link>
-              </>
-            ) : section && (
+            {section && (
               <>
                 <span aria-hidden="true">/</span>
                 <span>{section}</span>
@@ -391,27 +325,6 @@ export default function CourseInfoContent({
         <div className={styles.layout}>
           <section className={styles.hero} aria-labelledby="course-title">
             {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
-            {padre?.hermanos && padre.hermanos.length > 1 && (
-              <nav className={styles.pathNav} aria-label={`Cursos de ${cleanTitle(padre.titulo)}`}>
-                <ol className={styles.pathList}>
-                  {padre.hermanos.map((h, i) => {
-                    const actual = h.id === course.id;
-                    return (
-                      <li key={h.id}>
-                        <Link
-                          href={`/curso/${h.id}`}
-                          className={`${styles.pathItem} ${actual ? styles.pathItemCurrent : ''}`}
-                          aria-current={actual ? 'page' : undefined}
-                        >
-                          <span className={styles.pathNum}>{i + 1}</span>
-                          {sinPrefijo(h.titulo, padre.titulo)}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </nav>
-            )}
             <h1 id="course-title" className={styles.courseTitle}>{displayTitle}</h1>
             {course.description && (
               <>
@@ -507,107 +420,13 @@ export default function CourseInfoContent({
               </section>
             )}
 
-            <section className={styles.section} aria-labelledby="syllabus-title">
-              <div className={styles.sectionHead}>
-                <h2 id="syllabus-title" className={styles.sectionTitle}>Temario</h2>
-                {course.syllabus.length > 1 && (
-                  <button type="button" className={styles.linkButton} onClick={toggleAll}>
-                    {allOpen ? 'Contraer todo' : 'Expandir todo'}
-                  </button>
-                )}
-              </div>
-              {course.syllabus.length === 0 ? (
-                <p className={styles.sectionText}>El temario se publicará pronto.</p>
-              ) : (
-                <div className={styles.modules}>
-                  {course.syllabus.map((modulo, index) => {
-                    const isOpen = openModules.has(index);
-                    const hasLessons = modulo.lessons.length > 0;
-                    const doneCount = modulo.lessons.filter((l) => l.id && completedIds.has(l.id)).length;
-                    const moduleDone = isEnrolled && hasLessons && doneCount === modulo.lessons.length;
-                    return (
-                      <div key={index} className={`${styles.module} ${moduleDone ? styles.moduleDone : ''}`}>
-                        <button
-                          type="button"
-                          className={styles.moduleButton}
-                          onClick={() => toggleModule(index)}
-                          aria-expanded={isOpen}
-                          aria-controls={`modulo-${index}`}
-                          disabled={!hasLessons}
-                        >
-                          <span className={styles.moduleNum} aria-hidden="true">
-                            {moduleDone ? (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6}><path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-                            ) : (
-                              index + 1
-                            )}
-                          </span>
-                          <span className={styles.moduleText}>
-                            <span className={styles.moduleTitle}>{moduleTitle(modulo.title)}</span>
-                            {hasLessons && <span className={styles.moduleMix}>{mixLabel(countKinds(modulo.lessons))}</span>}
-                          </span>
-                          {hasLessons && (
-                            <span className={styles.moduleCount}>
-                              {isEnrolled
-                                ? `${doneCount}/${modulo.lessons.length}`
-                                : plural(modulo.lessons.length, 'lección', 'lecciones')}
-                            </span>
-                          )}
-                          <svg className={styles.moduleChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-                          </svg>
-                        </button>
-                        {isOpen && hasLessons && (
-                          <ul id={`modulo-${index}`} className={styles.lessons}>
-                            {modulo.lessons.map((leccion, i) => {
-                              const kind = kindOf(leccion);
-                              const done = !!leccion.id && completedIds.has(leccion.id);
-                              const isNext = nextLessonKey === `${index}-${i}`;
-                              return (
-                                <li
-                                  key={leccion.id ?? i}
-                                  className={`${styles.lesson} ${hasThumbs ? styles.lessonThumb : ''} ${done ? styles.lessonDone : ''} ${isNext ? styles.lessonNext : ''}`}
-                                >
-                                  <LessonThumb
-                                    src={kind === 'video' ? leccion.thumbnailUrl : undefined}
-                                    icon={done ? <CheckCircle /> : <KindIcon kind={kind} />}
-                                    framed={hasThumbs}
-                                    done={done && kind === 'video' && !!leccion.thumbnailUrl}
-                                    active={isNext}
-                                  />
-                                  <span className={styles.lessonTitle}>{cleanTitle(leccion.title)}</span>
-                                  <span className={styles.lessonKind}>
-                                    {isNext
-                                      ? 'Siguiente'
-                                      : leccion.durationSec && kind !== 'quiz'
-                                        ? formatDuration(leccion.durationSec)
-                                        : KIND_NAME[kind]}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {padre?.siguiente_id && padre.siguiente_titulo && (
-                <div className={globalStyles.sibling}>
-                  <div>
-                    <span className={globalStyles.siblingLabel}>
-                      Siguiente en {cleanTitle(padre.titulo)} · Curso {padre.posicion + 1} de {padre.total}
-                    </span>
-                    <span className={globalStyles.siblingTitle}>{sinPrefijo(padre.siguiente_titulo, padre.titulo)}</span>
-                  </div>
-                  <Link href={`/curso/${padre.siguiente_id}`} className={globalStyles.siblingButton}>
-                    Ver curso
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg>
-                  </Link>
-                </div>
-              )}
-            </section>
+            <CourseSyllabus
+              syllabus={course.syllabus}
+              completedIds={completedIds}
+              showProgress={Boolean(isEnrolled)}
+              onLessonClick={handleLessonClick}
+              lessonActionLabel={isEnrolled || viewOnlyMode ? 'Abrir lección' : 'Ver cómo acceder'}
+            />
 
             {requirements.length > 0 && (
               <section className={styles.section} aria-labelledby="req-title">
@@ -630,6 +449,7 @@ export default function CourseInfoContent({
           </div>
         </div>
       </main>
+      <Toast toast={toast} onClose={closeToast} />
     </div>
   );
 }

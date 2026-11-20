@@ -9,6 +9,10 @@ import styles from './VideoControls.module.css';
 interface VideoControlsProps {
   progress: number;
   onMarkComplete: () => void;
+  /** La lección actual ya está completada (palomita). */
+  completed?: boolean;
+  /** Tipo de lección: el video se completa solo al terminarlo. */
+  tipo?: 'video' | 'quiz' | 'lectura';
   resources?: Resource[];
   resumen?: string;
   courseId?: string;
@@ -22,6 +26,8 @@ interface VideoControlsProps {
 export default function VideoControls({
   progress,
   onMarkComplete,
+  completed = false,
+  tipo = 'video',
   resources,
   resumen,
   certFolio,
@@ -30,7 +36,6 @@ export default function VideoControls({
   readOnlyMode = false,
 }: VideoControlsProps) {
   const [activeTab, setActiveTab] = useState<'resumen' | 'recursos'>('resumen');
-  const [isCompleted, setIsCompleted] = useState(false);
   const [descargandoRecurso, setDescargandoRecurso] = useState<string | null>(null);
 
   const handleDescargarRecurso = async (recursoId: string) => {
@@ -44,11 +49,6 @@ export default function VideoControls({
     }
   };
 
-  const handleMarkComplete = () => {
-    setIsCompleted(true);
-    onMarkComplete();
-    setTimeout(() => setIsCompleted(false), 2000);
-  };
 
   // Las reseñas viven en la ficha del curso, no en cada lección. Las notas
   // personales se retiraron: vivían solo en el navegador (se perdían al cambiar
@@ -168,15 +168,24 @@ export default function VideoControls({
         <div className={styles.progressBar}>
           <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
+        {/* El video se marca solo al terminarlo; el botón queda como respaldo y
+            para las lecturas. Ya completada, el botón pasa a "siguiente". */}
         <button
-          onClick={handleMarkComplete}
-          className={`${styles.completeButton} ${isCompleted ? styles.completeButtonSuccess : ''}`}
+          onClick={onMarkComplete}
+          className={`${styles.completeButton} ${completed ? styles.completeButtonSuccess : ''}`}
         >
-          {isCompleted && (
+          {completed && (
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
           )}
-          {isCompleted ? 'Lección completada!' : 'Marcar lección como completada'}
+          {completed
+            ? 'Completada · Ir a lo siguiente'
+            : tipo === 'lectura'
+              ? 'Terminé la lectura'
+              : 'Marcar como completada'}
         </button>
+        {!completed && tipo === 'video' && (
+          <p className={styles.autoHint}>Se marca sola al terminar el video.</p>
+        )}
         {certFolio && (
           <button
             className={styles.certButton}

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams, notFound } from 'next/navigation';
 import CourseInfoContent, { type CoursePadre, type CourseProgress } from '@/components/course/CourseInfoContent';
+import { useProgresoEnVivo } from '@/lib/progresoSync';
 import GlobalCourseContent, { type GlobalCourse, type Subcurso } from '@/components/course/GlobalCourseContent';
 import { categoriasApi, cursosApi, inscripcionesApi, progresoApi, type ApiError } from '@/lib/api/client';
 import { logError } from '@/lib/logger';
@@ -94,9 +95,45 @@ interface ApiProgreso {
   progreso_por_leccion: { leccion_id: string; completado: boolean }[];
 }
 
+const NIVEL_TEXTO: Record<string, string> = {
+  principiante: 'Principiante',
+  intermedio: 'Intermedio',
+  avanzado: 'Avanzado',
+};
+
+function toGlobalCourse(cursoRaw: ApiCurso): GlobalCourse {
+  return {
+    id: cursoRaw.id,
+    titulo: cursoRaw.titulo,
+    descripcion: cursoRaw.descripcion || '',
+    nivel: (cursoRaw.nivel && NIVEL_TEXTO[cursoRaw.nivel]) || '',
+    image: cursoRaw.portada_url ? `${API_URL}${cursoRaw.portada_url}` : '/placeholder-course.jpg',
+    marca: cursoRaw.marca,
+    esDeMiOrg: cursoRaw.es_de_mi_org ?? false,
+    puedeInscribirse: cursoRaw.puede_inscribirse,
+    subcursos: cursoRaw.subcursos ?? [],
+    leccionesTotal: cursoRaw.lecciones_total ?? 0,
+    leccionesCompletadas: cursoRaw.lecciones_completadas ?? 0,
+    subcursosCompletados: cursoRaw.subcursos_completados ?? 0,
+  };
+}
+
+function toProgress(pr: ApiProgreso): CourseProgress {
+  return {
+    completedLessonIds: pr.progreso_por_leccion.filter((p) => p.completado).map((p) => p.leccion_id),
+    completed: pr.lecciones_completadas,
+    total: pr.total_lecciones,
+    pct: Math.round(pr.progreso_pct),
+  };
+}
+
 export default function CursoInfoPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  // Curso del proceso elegido en el selector (página de un curso global).
+  const cursoSeleccionado = searchParams.get('curso');
 
   const [course, setCourse] = useState<CourseInfo | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -108,7 +145,7 @@ export default function CursoInfoPage() {
   const [userRole, setUserRole] = useState('');
   // Curso global (agrupa cursos) y, en un curso normal, el global al que pertenece.
   const [globalCourse, setGlobalCourse] = useState<GlobalCourse | null>(null);
-  const [padre, setPadre] = useState<CoursePadre | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -124,33 +161,21 @@ export default function CursoInfoPage() {
 
         const cursoRaw = await cursosApi.get(id) as ApiCurso;
 
-        const nivelTexto: Record<string, string> = {
-          principiante: 'Principiante',
-          intermedio: 'Intermedio',
-          avanzado: 'Avanzado',
-        };
-
-        // Curso global: su propia ficha, con la lista de cursos que agrupa.
+        // Curso global: su propia ficha, con el selector de los cursos que agrupa.
         if (cursoRaw.tipo === 'global') {
           if (!active) return;
-          setGlobalCourse({
-            id: cursoRaw.id,
-            titulo: cursoRaw.titulo,
-            descripcion: cursoRaw.descripcion || '',
-            nivel: (cursoRaw.nivel && nivelTexto[cursoRaw.nivel]) || '',
-            image: cursoRaw.portada_url ? `${API_URL}${cursoRaw.portada_url}` : '/placeholder-course.jpg',
-            marca: cursoRaw.marca,
-            esDeMiOrg: cursoRaw.es_de_mi_org ?? false,
-            puedeInscribirse: cursoRaw.puede_inscribirse,
-            subcursos: cursoRaw.subcursos ?? [],
-            leccionesTotal: cursoRaw.lecciones_total ?? 0,
-            leccionesCompletadas: cursoRaw.lecciones_completadas ?? 0,
-            subcursosCompletados: cursoRaw.subcursos_completados ?? 0,
-          });
+          setGlobalCourse(toGlobalCourse(cursoRaw));
+          return;
+        }
+        // Un curso dentro de un proceso se ve en la página del proceso, con ese
+        // curso elegido en el selector (una sola página, sin saltos).
+        if (cursoRaw.padre) {
+          if (!active) return;
+          setRedirecting(true);
+          router.replace(`/curso/${cursoRaw.padre.id}?curso=${cursoRaw.id}`);
           return;
         }
         setGlobalCourse(null);
-        setPadre(cursoRaw.padre ?? null);
 
         const esAlumno = shouldCheckEnrollment(rol);
         let inscResp: ApiInscripcionesResp = { data: [], count: 0 };
@@ -214,13 +239,7 @@ export default function CursoInfoPage() {
         let courseProgress: CourseProgress | null = null;
         if (enrolled) {
           try {
-            const pr = await progresoApi.curso(id) as ApiProgreso;
-            courseProgress = {
-              completedLessonIds: pr.progreso_por_leccion.filter((p) => p.completado).map((p) => p.leccion_id),
-              completed: pr.lecciones_completadas,
-              total: pr.total_lecciones,
-              pct: Math.round(pr.progreso_pct),
-            };
+            courseProgress = toProgress(await progresoApi.curso(id) as ApiProgreso);
           } catch (e) {
             logError('CursoInfoPage/progreso', e);
           }
@@ -243,7 +262,30 @@ export default function CursoInfoPage() {
     return () => {
       active = false;
     };
-  }, [id, reloadKey]);
+  }, [id, reloadKey, router]);
+
+  // Contadores del proceso sin mostrar el cargador (avance en tiempo real).
+  const refrescarProceso = useCallback(() => {
+    (cursosApi.get(id) as Promise<ApiCurso>)
+      .then((raw) => {
+        if (raw.tipo === 'global') setGlobalCourse(toGlobalCourse(raw));
+      })
+      .catch((e) => logError('CursoInfoPage/refrescarProceso', e));
+  }, [id]);
+
+  // Curso suelto: si otra pestaña completa una lección (o se vuelve a esta),
+  // se vuelve a pedir el avance para que las palomitas estén al día.
+  useProgresoEnVivo((evento) => {
+    if (globalCourse || !isEnrolled) return;
+    if (evento && evento.cursoId !== id) return;
+    (progresoApi.curso(id) as Promise<ApiProgreso>)
+      .then((pr) => setProgress(toProgress(pr)))
+      .catch((e) => logError('CursoInfoPage/progresoEnVivo', e));
+  });
+
+  const seleccionarCurso = (subId: string) => {
+    router.replace(`/curso/${id}?curso=${subId}`, { scroll: false });
+  };
 
   const handleInscribirseGlobal = async () => {
     setEnrollLoading(true);
@@ -277,7 +319,7 @@ export default function CursoInfoPage() {
     }
   };
 
-  if (loading) {
+  if (loading || redirecting) {
     return (
       <BrandLoader label="Cargando" />
     );
@@ -287,6 +329,9 @@ export default function CursoInfoPage() {
     return (
       <GlobalCourseContent
         course={globalCourse}
+        selectedId={cursoSeleccionado}
+        onSelect={seleccionarCurso}
+        onProgressChange={refrescarProceso}
         onInscribirse={shouldCheckEnrollment(userRole) ? handleInscribirseGlobal : undefined}
         enrollLoading={enrollLoading}
         enrollError={enrollError}
@@ -313,7 +358,6 @@ export default function CursoInfoPage() {
       viewCourseHref={`/curso/${course.id}/videos?from=supervisor`}
       viewCourseLabel="Ver curso"
       showUserMenu={shouldCheckEnrollment(userRole)}
-      padre={padre}
     />
   );
 }
