@@ -4,4 +4,5 @@ services:
   frontend:
     image: ngcourses-frontend:local
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
