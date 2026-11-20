@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter, notFound } from 'next/navigation';
-import CourseVideoContent from '@/components/course/CourseVideoContent';
+import CourseVideoContent, { type ProcesoDelCurso } from '@/components/course/CourseVideoContent';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { cursosApi, inscripcionesApi, progresoApi } from '@/lib/api/client';
 import { normalizeQuizData } from '@/lib/quizData';
@@ -53,6 +53,7 @@ interface ApiCursoDetalle {
   descripcion: string | null;
   bunny_library_id: string | null;
   modulos: ApiModulo[];
+  padre?: ProcesoDelCurso | null;
 }
 
 interface ApiInscripcionesResp {
@@ -91,10 +92,13 @@ export default function CursoVideosPage() {
   const fromAdmin = searchParams.get('from') === 'admin';
   const fromSupervisor = searchParams.get('from') === 'supervisor';
   const previewMode = fromAdmin || fromSupervisor;
+  // Lección a abrir (clic en el temario de la ficha). Sin ella, la primera pendiente.
+  const leccionInicial = searchParams.get('leccion');
 
   const [course, setCourse] = useState<Course | null>(null);
   const [inscripcionId, setInscripcionId] = useState<string | null>(null);
   const [bunnyLibraryId, setBunnyLibraryId] = useState<string | null>(null);
+  const [proceso, setProceso] = useState<ProcesoDelCurso | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -104,6 +108,7 @@ export default function CursoVideosPage() {
       try {
         const cursoDetalle = await cursosApi.get(id) as ApiCursoDetalle;
         setBunnyLibraryId(cursoDetalle.bunny_library_id);
+        setProceso(cursoDetalle.padre ?? null);
 
         let inscripcion: { id: string; curso_id: string } | undefined;
 
@@ -208,6 +213,8 @@ export default function CursoVideosPage() {
     <ErrorBoundary context="CourseVideoPage" fallback={<p style={{ padding: '2rem' }}>Error al cargar el contenido del curso. Recarga la página.</p>}>
       <CourseVideoContent
         initialCourse={course}
+        initialLessonId={leccionInicial}
+        proceso={proceso}
         inscripcionId={inscripcionId}
         bunnyLibraryId={bunnyLibraryId}
         backHref={fromAdmin ? `/admin/cursos/${id}/preview` : fromSupervisor ? `/curso/${id}` : undefined}
