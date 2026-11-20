@@ -13,6 +13,8 @@ interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number, duration?: number) => void;
   onEnded?: () => void;
   className?: string;
+  /** Arranca solo (al pasar a la siguiente lección con la cuenta atrás). */
+  autoPlay?: boolean;
 }
 
 export default function VideoPlayer({
@@ -21,18 +23,22 @@ export default function VideoPlayer({
   onTimeUpdate,
   onEnded,
   className = '',
+  autoPlay = false,
 }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const subscribedRef = useRef(false);
+  // Bunny ya avisó "ready": su reproductor está escuchando.
+  const readyRef = useRef(false);
+  // El final ya se avisó (se rearma si el alumno regresa el video).
+  const endedRef = useRef(false);
 
   // Suscribe a timeupdate/ended del reproductor de Bunny (protocolo player.js).
-  // Se hace una sola vez por video para no recibir eventos duplicados.
+  // OJO: un mensaje enviado antes de que Bunny esté listo se pierde sin error,
+  // por eso la suscripción se hace (o se repite) al recibir "ready".
   const subscribeBunny = () => {
     const target = iframeRef.current?.contentWindow;
-    if (!target || subscribedRef.current) return;
-    subscribedRef.current = true;
+    if (!target) return;
     for (const value of ['timeupdate', 'ended']) {
       target.postMessage(
         JSON.stringify({ context: 'player.js', version: '0.0.11', method: 'addEventListener', value, listener: value }),
@@ -42,7 +48,7 @@ export default function VideoPlayer({
   };
 
   const bunnyStreamUrl = config
-    ? `https://iframe.mediadelivery.net/embed/${config.libraryId}/${config.videoId}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`
+    ? `https://iframe.mediadelivery.net/embed/${config.libraryId}/${config.videoId}?autoplay=${autoPlay}&loop=false&muted=false&preload=true&responsive=true`
     : null;
 
   // Eventos del reproductor de Bunny. Bunny usa el protocolo player.js: manda
@@ -62,12 +68,29 @@ export default function VideoPlayer({
       if (!data) return;
 
       const name = data.context === 'player.js' ? data.event : data.type;
-      if (name === 'ready') subscribeBunny();
-      if (name === 'timeupdate' && onTimeUpdate) {
-        const seconds = data.value?.seconds ?? data.currentTime;
-        if (typeof seconds === 'number') onTimeUpdate(seconds, data.value?.duration);
+      const avisarFinal = () => {
+        if (endedRef.current) return;
+        endedRef.current = true;
+        onEnded?.();
+      };
+      if (name === 'ready') {
+        readyRef.current = true;
+        subscribeBunny();
       }
-      if (name === 'ended' && onEnded) onEnded();
+      if (name === 'timeupdate') {
+        const seconds = data.value?.seconds ?? data.currentTime;
+        const duration = data.value?.duration;
+        if (typeof seconds === 'number') {
+          onTimeUpdate?.(seconds, duration);
+          if (duration && duration > 0) {
+            // Respaldo por si Bunny no manda "ended": llegó al último medio segundo.
+            if (seconds >= duration - 0.5) avisarFinal();
+            // Regresó el video para verlo otra vez: el final vuelve a contar.
+            else if (seconds < duration - 3) endedRef.current = false;
+          }
+        }
+      }
+      if (name === 'ended') avisarFinal();
     };
 
     window.addEventListener('message', handleMessage);
@@ -98,7 +121,8 @@ export default function VideoPlayer({
   // Reset loading on source change
   useEffect(() => {
     setIsLoading(true);
-    subscribedRef.current = false;
+    readyRef.current = false;
+    endedRef.current = false;
   }, [videoUrl, config?.videoId]);
 
   // Local video mode
@@ -114,6 +138,7 @@ export default function VideoPlayer({
           ref={videoRef}
           src={videoUrl}
           controls
+          autoPlay={autoPlay}
           preload="metadata"
           className={styles.video}
           onLoadedData={() => setIsLoading(false)}
@@ -141,7 +166,10 @@ export default function VideoPlayer({
           onLoad={() => {
             setIsLoading(false);
             // Respaldo por si el aviso "ready" de Bunny llegó antes de escucharlo.
-            window.setTimeout(subscribeBunny, 1500);
+            // Si ya llegó, no hace falta (y así no se duplican los eventos).
+            window.setTimeout(() => {
+              if (!readyRef.current) subscribeBunny();
+            }, 1500);
           }}
         />
       </div>
