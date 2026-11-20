@@ -23,18 +23,26 @@ export default function PayPalCheckout({ cursoId, monedaCurso, onSuccess }: PayP
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
+  // Sin credenciales de PayPal el pago en línea queda deshabilitado: se avisa
+  // al alumno con un mensaje neutro, sin detalles técnicos de configuración.
   if (!PAYPAL_CLIENT_ID) {
     return (
-      <div style={{
-        padding: '0.75rem 1rem',
-        background: 'var(--color-tint-error, #fff5f5)',
-        border: '1px solid var(--color-tint-error, #fed7d7)',
-        borderRadius: '0.5rem',
-        color: 'var(--color-tint-error-text, #9b2c2c)',
-        fontSize: '0.85rem',
-      }}>
-        PayPal no esta configurado. Define <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code> en
-        <code> frontend/.env.local</code> y reinicia el dev server.
+      <div
+        role="status"
+        style={{
+          padding: '0.75rem 1rem',
+          background: 'var(--color-surface-subtle)',
+          border: '1px solid var(--color-border-default)',
+          borderRadius: '0.625rem',
+          color: 'var(--color-text-secondary)',
+          fontSize: '0.875rem',
+          lineHeight: 1.45,
+        }}
+      >
+        <strong style={{ display: 'block', color: 'var(--color-text-heading)', marginBottom: '0.125rem' }}>
+          Pago en línea no disponible por el momento
+        </strong>
+        Si tu empresa tiene licencia de este curso, pide a tu supervisor que te invite.
       </div>
     );
   }

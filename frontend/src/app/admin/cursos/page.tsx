@@ -189,7 +189,7 @@ export default function CursosListPage() {
         </div>
         <div className={styles.headerActions}>
           <Link href="/admin/cursos/global/nuevo" className={styles.secondaryButton}>
-            Nuevo curso global
+            Nuevo proceso
           </Link>
           <Link href="/admin/cursos/crear" className={styles.primaryButton}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" aria-hidden="true">
@@ -272,7 +272,7 @@ export default function CursosListPage() {
                 const meta = hijo
                   ? [`Curso ${pos} de ${total}`, course.nivel ? NIVEL_LABEL[course.nivel] ?? course.nivel : null].filter(Boolean).join(' · ')
                   : course.tipo === 'global'
-                    ? [`Curso global · ${total} ${total === 1 ? 'curso' : 'cursos'}`, course.nivel ? NIVEL_LABEL[course.nivel] ?? course.nivel : null, course.marca ? MARCA_LABEL[course.marca] : null].filter(Boolean).join(' · ')
+                    ? [`Proceso · ${total} ${total === 1 ? 'curso' : 'cursos'}`, course.nivel ? NIVEL_LABEL[course.nivel] ?? course.nivel : null, course.marca ? MARCA_LABEL[course.marca] : null].filter(Boolean).join(' · ')
                     : null;
                 const metaNormal = [
                   course.categoria_id ? categorias[course.categoria_id] : null,

@@ -201,6 +201,7 @@ export default function CursoInfoPage() {
           image: cursoRaw.portada_url ? `${API_URL}${cursoRaw.portada_url}` : '/placeholder-course.jpg',
           bloqueadoPorLicencia: cursoRaw.bloqueado_por_licencia ?? false,
           esDeMiOrg: cursoRaw.es_de_mi_org ?? false,
+          puedeInscribirse: cursoRaw.puede_inscribirse,
           esGratis: cursoRaw.es_gratis,
           marca: cursoRaw.marca,
           category: categorias.find((c) => c.id === cursoRaw.categoria_id)?.nombre,

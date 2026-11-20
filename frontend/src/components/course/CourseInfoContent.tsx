@@ -13,7 +13,7 @@ import globalStyles from './GlobalCourseContent.module.css';
 import { sinPrefijo } from './GlobalCourseContent';
 import BackLink from '@/components/shared/BackLink';
 
-/** Curso global al que pertenece este curso, y su lugar en él. */
+/** Proceso (curso global) al que pertenece este curso, y su lugar en él. */
 export interface CoursePadre {
   id: string;
   titulo: string;
@@ -21,6 +21,8 @@ export interface CoursePadre {
   total: number;
   siguiente_id?: string | null;
   siguiente_titulo?: string | null;
+  /** Todos los cursos del proceso, en orden, incluido el actual. */
+  hermanos?: { id: string; titulo: string }[];
 }
 
 /** Avance del alumno inscrito (GET /progreso/curso/{id}). */
@@ -157,7 +159,13 @@ export default function CourseInfoContent({
 }: CourseInfoContentProps) {
   const displayTitle = padre ? sinPrefijo(course.title, padre.titulo) : cleanTitle(course.title);
   const price = formatPrice(course.precio, course.moneda);
-  const requierePago = !price.isFree;
+  // Solo se cobra un curso NextGen con precio al que el alumno no tiene acceso por
+  // otra vía. Si su empresa lo licenció o ya lo pagó (puedeInscribirse), se inscribe
+  // sin pagar; un curso RAM nunca se vende (su acceso es por licencia).
+  const requierePago = !price.isFree
+    && course.marca !== 'ram'
+    && !course.esDeMiOrg
+    && !course.puedeInscribirse;
   const completedIds = new Set(progress?.completedLessonIds ?? []);
   // Si algún video trae miniatura, el temario usa el recuadro 16:9 en todas las filas.
   const hasThumbs = course.syllabus.some((m) => m.lessons.some((l) => !!l.thumbnailUrl));
@@ -293,6 +301,7 @@ export default function CourseInfoContent({
           {started ? 'Continuar' : 'Empezar curso'}
           {ArrowIcon}
         </Link>
+        {course.esDeMiOrg && <p className={styles.licenseNote}>Incluido en la licencia de tu empresa</p>}
       </>
     );
   } else if (requierePago) {
@@ -382,6 +391,27 @@ export default function CourseInfoContent({
         <div className={styles.layout}>
           <section className={styles.hero} aria-labelledby="course-title">
             {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
+            {padre?.hermanos && padre.hermanos.length > 1 && (
+              <nav className={styles.pathNav} aria-label={`Cursos de ${cleanTitle(padre.titulo)}`}>
+                <ol className={styles.pathList}>
+                  {padre.hermanos.map((h, i) => {
+                    const actual = h.id === course.id;
+                    return (
+                      <li key={h.id}>
+                        <Link
+                          href={`/curso/${h.id}`}
+                          className={`${styles.pathItem} ${actual ? styles.pathItemCurrent : ''}`}
+                          aria-current={actual ? 'page' : undefined}
+                        >
+                          <span className={styles.pathNum}>{i + 1}</span>
+                          {sinPrefijo(h.titulo, padre.titulo)}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </nav>
+            )}
             <h1 id="course-title" className={styles.courseTitle}>{displayTitle}</h1>
             {course.description && (
               <>

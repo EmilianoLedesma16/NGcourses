@@ -236,6 +236,7 @@ def test_ficha_del_global_y_de_un_curso_dentro(db: Session) -> None:
     assert medio["padre"]["posicion"] == 2 and medio["padre"]["total"] == 3
     assert medio["padre"]["siguiente_titulo"] == "Escaneo"
     assert medio["padre"]["anterior_titulo"] == "Desensamble"
+    assert [h["titulo"] for h in medio["padre"]["hermanos"]] == ["Desensamble", "Quitar tapa", "Escaneo"]
 
 
 def test_inscribirse_al_global_inscribe_en_todos(db: Session) -> None:

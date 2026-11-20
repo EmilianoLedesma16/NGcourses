@@ -1610,6 +1610,25 @@ def unassign_licencia(
         session.commit()
 
 
+def quitar_licencias_de_subcursos(
+    *, session: Session, org_id: uuid.UUID, padre_id: uuid.UUID
+) -> int:
+    """Borra las licencias sueltas de los cursos de un programa: la licencia del
+    programa ya los cubre (`expandir_con_subcursos`). Devuelve cuántas borró."""
+    hijos = select(Curso.id).where(Curso.curso_padre_id == padre_id)
+    rows = session.exec(
+        select(LicenciaCurso).where(
+            LicenciaCurso.organizacion_id == org_id,
+            LicenciaCurso.curso_id.in_(hijos),  # type: ignore[attr-defined]
+        )
+    ).all()
+    for row in rows:
+        session.delete(row)
+    if rows:
+        session.commit()
+    return len(rows)
+
+
 def list_licencias_by_org(
     *, session: Session, org_id: uuid.UUID
 ) -> list[LicenciaCurso]:

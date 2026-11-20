@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import type { UserProfile, UserStatistics, CourseInProgress } from '@/types/course';
 import MisCompras from './MisCompras';
-import StudentUserMenu from '@/components/shared/StudentUserMenu';
+import StudentHeader from '@/components/shared/StudentHeader';
+import BackLink from '@/components/shared/BackLink';
 import styles from './ProfileContent.module.css';
 import AnimalAvatar from '@/components/shared/AnimalAvatar';
 
@@ -19,22 +19,15 @@ interface ProfileContentProps {
 export default function ProfileContent({ profile, statistics, coursesInProgress, avatarUrl, onEditClick, onAvatarClick }: ProfileContentProps) {
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <Link href="/cursos" className={styles.logoLink}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo.png" alt="NextGen" className={styles.logoImg} />
-            <span className={styles.logoTitle}>
-              <span className={styles.logoBold}>NextGen</span>
-              <span className={styles.logoLight}> Course</span>
-            </span>
-          </Link>
-          <StudentUserMenu />
-        </div>
-      </header>
+      {/* Misma barra que el resto de las vistas del alumno: logo, Dashboard /
+          Mi progreso / Certificados y menú de usuario. */}
+      <StudentHeader />
 
       <main className={styles.main}>
-        <h1 className={styles.pageTitle}>Mi perfil</h1>
+        <div className={styles.titleBlock}>
+          <BackLink href="/cursos">Volver al Dashboard</BackLink>
+          <h1 className={styles.pageTitle}>Mi perfil</h1>
+        </div>
 
         <div className={styles.profileCard}>
           <div className={styles.profileHeader}>

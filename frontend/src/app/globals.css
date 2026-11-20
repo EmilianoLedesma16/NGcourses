@@ -18,8 +18,8 @@
   --color-secondary-30-lighter: #b2e8e6; /* Turquesa muy claro */
 
   /* 10% - Color de Acento (botones, CTAs, highlights) — Verde acción */
-  --color-accent-10: #1B8D56;         /* Verde botón principal */
-  --color-accent-10-hover: #166b43;   /* Verde hover */
+  --color-accent-10: #177A4A;         /* Verde botón principal (texto blanco 5.4:1) */
+  --color-accent-10-hover: #126239;   /* Verde hover */
   --color-accent-10-light: #e6f5ee;   /* Verde muy claro para backgrounds */
 
   /* Colores de Estado */
@@ -67,7 +67,7 @@
   --color-border-strong: #D1D5DB;     /* Bordes de inputs y separadores marcados */
   --color-text-heading: #1A202C;      /* Títulos */
   --color-text-body: #374151;         /* Texto de párrafo */
-  --color-text-muted: #64748B;        /* Texto de apoyo */
+  --color-text-muted: #5B6B80;        /* Texto de apoyo (4.5:1 también sobre el fondo gris) */
   --color-text-faint: #94A3B8;        /* Placeholders, metadatos */
 
   /* Tintes de estado: sin valor en claro → cada uso cae a su hex de fallback. */

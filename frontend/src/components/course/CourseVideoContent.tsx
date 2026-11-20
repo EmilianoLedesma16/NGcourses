@@ -258,6 +258,7 @@ export default function CourseVideoContent({ initialCourse, inscripcionId, bunny
             modules={course.modules}
             currentLessonId={currentLesson.id}
             onLessonSelect={handleLessonSelect}
+            storageKey={`aula-modulos-${course.id}`}
           />
 
           <div className={styles.videoSection}>

@@ -412,6 +412,12 @@ class SubcursoResumen(SQLModel):
     modulos: list[str] = []
 
 
+class CursoHermanoRef(SQLModel):
+    """Un curso dentro del mismo global (para los botones de la ficha)."""
+    id: uuid.UUID
+    titulo: str
+
+
 class CursoPadreRef(SQLModel):
     """El curso global al que pertenece un curso, y su lugar en él."""
     id: uuid.UUID
@@ -422,6 +428,8 @@ class CursoPadreRef(SQLModel):
     anterior_titulo: str | None = None
     siguiente_id: uuid.UUID | None = None
     siguiente_titulo: str | None = None
+    # Todos los cursos del global, en orden, incluido el actual.
+    hermanos: list[CursoHermanoRef] = []
 
 
 class CursoDetalle(CursoPublic):

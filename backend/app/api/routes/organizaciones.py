@@ -10,7 +10,7 @@ from app import crud
 from app.api.deps import AdminOrSuperuser, SessionDep
 from app.core.config import settings
 from app.models import User
-from app.models._enums import EstadoCurso, RolOrganizacion, RolUsuario
+from app.models._enums import EstadoCurso, RolOrganizacion, RolUsuario, TipoCurso
 from app.models._validators import RFC, Telefono, Texto255
 
 router = APIRouter(prefix="/organizaciones", tags=["organizaciones"])
@@ -393,7 +393,19 @@ def asignar_licencia(
             status_code=409,
             detail="Solo puedes licenciar cursos publicados a una organización.",
         )
+    # La licencia de un programa (curso global) ya cubre todos sus cursos. No se
+    # licencia un curso que su programa ya cubre, y al licenciar un programa se
+    # quitan las licencias sueltas de sus cursos, para no tener duplicados.
+    if curso.curso_padre_id and crud.tiene_licencia_activa(
+        session=session, org_id=org_id, curso_id=curso.curso_padre_id
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Este curso ya está incluido en un proceso licenciado a la organización.",
+        )
     lic = crud.assign_licencia(session=session, org_id=org_id, curso_id=body.curso_id)
+    if curso.tipo == TipoCurso.GLOBAL:
+        crud.quitar_licencias_de_subcursos(session=session, org_id=org_id, padre_id=curso.id)
     return LicenciaPublic(
         id=lic.id, curso_id=lic.curso_id, curso_titulo=curso.titulo,
         estado=lic.estado.value if hasattr(lic.estado, "value") else str(lic.estado),
