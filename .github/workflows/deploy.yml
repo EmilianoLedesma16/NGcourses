@@ -11,6 +11,9 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.npmrc'
       - 'docker-compose.prod.yml'
       - 'docker-compose.traefik.yml'
       - '.github/workflows/deploy.yml'

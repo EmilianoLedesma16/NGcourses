@@ -1,0 +1,11 @@
+# Se aplica cuando el contexto es la raiz del repo y el Dockerfile es frontend/Dockerfile
+*
+!package.json
+!package-lock.json
+!.npmrc
+!frontend
+frontend/node_modules
+frontend/.next
+frontend/.env*
+!frontend/.env.local.example
+frontend/.vscode
