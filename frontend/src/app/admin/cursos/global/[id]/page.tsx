@@ -156,7 +156,7 @@ export default function CursoGlobalPage() {
     setError('');
     setAviso('');
     if (!titulo.trim()) {
-      setError('Escribe el título del curso global.');
+      setError('Escribe el título del proceso.');
       return;
     }
     if (nuevoEstado === 'publicado' && publicadosIncluidos === 0) {
@@ -190,7 +190,7 @@ export default function CursoGlobalPage() {
         await cursosApi.update(id, { estado: nuevoEstado });
         setEstado(nuevoEstado);
       }
-      setAviso(nuevoEstado === 'publicado' ? 'Curso global publicado.' : 'Cambios guardados.');
+      setAviso(nuevoEstado === 'publicado' ? 'Proceso publicado.' : 'Cambios guardados.');
       if (esNuevo) router.replace(`/admin/cursos/global/${id}`);
     } catch (e) {
       logError('admin/cursos/global/save', e);
@@ -218,9 +218,9 @@ export default function CursoGlobalPage() {
       <header className={list.header}>
         <div>
           <BackLink href="/admin/cursos" className={styles.back}>Volver a cursos</BackLink>
-          <h1 className={list.title}>{esNuevo && !cursoId ? 'Nuevo curso global' : titulo || 'Curso global'}</h1>
+          <h1 className={list.title}>{esNuevo && !cursoId ? 'Nuevo proceso' : titulo || 'Proceso'}</h1>
           <p className={list.subtitle}>
-            Curso global · {STATUS_LABEL[estado] ?? estado} · {seleccion.length} {seleccion.length === 1 ? 'curso' : 'cursos'}
+            Proceso · {STATUS_LABEL[estado] ?? estado} · {seleccion.length} {seleccion.length === 1 ? 'curso' : 'cursos'}
           </p>
         </div>
       </header>
@@ -278,7 +278,7 @@ export default function CursoGlobalPage() {
                       <div className={styles.order}>
                         <button type="button" onClick={() => mover(i, -1)} disabled={i === 0} aria-label={`Subir ${t}`}>{ArrowUp}</button>
                         <button type="button" onClick={() => mover(i, 1)} disabled={i === seleccion.length - 1} aria-label={`Bajar ${t}`}>{ArrowDown}</button>
-                        <button type="button" onClick={() => toggleCurso(id)} aria-label={`Quitar ${t} del curso global`}>{Cross}</button>
+                        <button type="button" onClick={() => toggleCurso(id)} aria-label={`Quitar ${t} del proceso`}>{Cross}</button>
                       </div>
                     </li>
                   );

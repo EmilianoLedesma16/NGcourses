@@ -401,7 +401,7 @@ def asignar_licencia(
     ):
         raise HTTPException(
             status_code=409,
-            detail="Este curso ya está incluido en un programa licenciado a la organización.",
+            detail="Este curso ya está incluido en un proceso licenciado a la organización.",
         )
     lic = crud.assign_licencia(session=session, org_id=org_id, curso_id=body.curso_id)
     if curso.tipo == TipoCurso.GLOBAL:

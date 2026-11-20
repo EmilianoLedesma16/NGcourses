@@ -1,11 +1,12 @@
-/* Contenido del curso en la vista de lección. Mismo lenguaje que las
-   pantallas del alumno: tarjeta blanca con borde fino, filas planas y la
-   lección actual marcada con una línea turquesa. */
+/* Contenido del curso en la vista de lección: árbol de dos niveles
+   (módulo › lección). Íconos por tipo de lección, palomita para lo
+   completado y círculo vacío para lo pendiente; la lección actual lleva un
+   tinte turquesa suave. Esquinas: 8px en el contenedor, 6px en las filas. */
 
 .container {
   background-color: var(--color-primary-60-alt);
   border: 1px solid var(--color-border-default);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   max-height: 800px;
   overflow-y: auto;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
@@ -15,229 +16,221 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  display: grid;
-  gap: 0.125rem;
-  padding: 1.125rem 1.25rem 0.875rem;
+  padding: 1rem;
   background-color: var(--color-primary-60-alt);
   border-bottom: 1px solid var(--color-border-default);
 }
 
+.headRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .headTitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-text-heading);
 }
 
 .headMeta {
   font-size: 0.8125rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.lessonList {
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem 0 0.75rem;
+.track {
+  height: 4px;
+  margin-top: 0.625rem;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: var(--color-surface-subtle);
 }
 
-.moduleContainer {
-  padding: 0.25rem 0;
+.fill {
+  height: 100%;
+  background-color: var(--color-secondary-30);
+  transition: width 0.3s ease;
 }
 
-.moduleContainer + .moduleContainer {
-  border-top: 1px solid var(--color-border-default);
+.tree,
+.lessons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
+.tree {
+  padding: 0.5rem 0;
+}
+
+/* Nivel 1: módulo */
 .moduleToggle {
   width: 100%;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  align-items: start;
   gap: 0.5rem;
   min-height: 2.75rem;
-  padding: 0 1.25rem;
-  background: none;
+  padding: 0.625rem 1rem 0.625rem 0.75rem;
   border: none;
-  cursor: pointer;
-  text-align: left;
+  background: none;
   font: inherit;
-  color: var(--color-text-muted);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.moduleToggle:hover .moduleTitle {
-  color: var(--color-secondary-30);
+.moduleToggle:hover:not(:disabled) {
+  background-color: var(--color-surface-muted);
 }
 
-.moduleToggle:focus-visible {
+.moduleToggle:disabled {
+  cursor: default;
+}
+
+.moduleToggle:focus-visible,
+.lesson:focus-visible {
   outline: 2px solid var(--color-secondary-30);
   outline-offset: -2px;
 }
 
 .chevron {
-  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 1px;
+  color: var(--color-text-muted);
   transition: transform 0.15s ease;
 }
 
-.chevronCollapsed {
-  transform: rotate(-90deg);
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.moduleText,
+.lessonText {
+  min-width: 0;
+  display: grid;
+  gap: 0.125rem;
 }
 
 .moduleTitle {
-  flex: 1;
-  margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--color-text-heading);
-  transition: color 0.15s ease;
 }
 
-.moduleCount {
-  flex-shrink: 0;
+.moduleMeta,
+.lessonMeta {
   font-size: 0.75rem;
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.moduleCountDone {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-weight: 600;
-  color: var(--color-secondary-30);
+/* Nivel 2: lecciones, con la línea del árbol a la altura de la flecha */
+.lessons {
+  margin: 0 0 0.375rem 1.3125rem;
+  padding-right: 0.5rem;
+  border-left: 1px solid var(--color-border-default);
 }
 
-:global([data-theme='dark']) .moduleCountDone {
-  color: var(--color-secondary-30-light);
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-.moduleLessonList {
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 0.25rem;
-}
-
-.lessonItem {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.5rem;
-  padding: 0.5rem 1.25rem 0.5rem 2.625rem;
+.lesson {
+  width: calc(100% - 0.5rem);
+  margin-left: 0.5rem;
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr) 1.125rem;
+  align-items: start;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.625rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
-  font-size: 0.875rem;
-  color: var(--color-text-body);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
-.lessonItem:hover {
+.lesson:hover {
   background-color: var(--color-surface-muted);
-  color: var(--color-text-heading);
-}
-
-.lessonItemThumb {
-  gap: 0.75rem;
-  padding-left: 1.25rem;
-}
-
-.lessonItemCompleted {
-  color: var(--color-text-secondary);
-}
-
-.lessonItemActive {
-  background-color: rgba(0, 150, 143, 0.07);
-  color: var(--color-text-heading);
-  font-weight: 600;
-}
-
-.lessonItemActive::before {
-  content: '';
-  position: absolute;
-  top: 0.375rem;
-  bottom: 0.375rem;
-  left: 0;
-  width: 2px;
-  border-radius: 0 2px 2px 0;
-  background-color: var(--color-secondary-30);
-}
-
-:global([data-theme='dark']) .lessonItemActive {
-  background-color: rgba(61, 193, 204, 0.1);
-}
-
-:global([data-theme='dark']) .lessonItemActive::before {
-  background-color: var(--color-secondary-30-light);
-}
-
-.typeIcon {
-  display: inline-flex;
-  flex-shrink: 0;
-  color: var(--color-text-faint);
-}
-
-.lessonItemActive .typeIcon {
-  color: var(--color-secondary-30);
 }
 
 .lessonName {
-  flex: 1;
-  min-width: 0;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--color-text-heading);
 }
 
-.lessonIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.typeIcon {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+
+.typeIcon svg,
+.doneIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.doneIcon {
   flex-shrink: 0;
-}
-
-.checkIcon {
-  display: inline-flex;
   color: var(--color-secondary-30);
 }
 
-.arrowIcon {
-  display: inline-flex;
-  color: var(--color-text-faint);
+/* Pendiente: círculo vacío (3:1 sobre la tarjeta en claro y en oscuro) */
+.pending {
+  width: 1rem;
+  height: 1rem;
+  margin: 1px;
+  box-sizing: border-box;
+  border: 1.5px solid #8A96A6;
+  border-radius: 50%;
 }
 
-/* Clases heredadas que aún pueden usarse en otras vistas */
-.tabs {
-  display: flex;
-  gap: 1.25rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--color-border-default);
+.lessonCurrent,
+.lessonCurrent:hover {
+  background-color: rgba(0, 150, 143, 0.08);
 }
 
-.tab {
-  padding-bottom: 0.75rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-  flex: 1;
-  text-align: center;
-  color: var(--color-text-secondary);
-}
-
-.tabActive {
-  color: var(--color-text-heading);
-  border-bottom: 2px solid var(--color-secondary-30);
+.lessonCurrent .lessonName {
   font-weight: 600;
+}
+
+.lessonCurrent .typeIcon {
+  color: var(--color-secondary-30);
+}
+
+:global([data-theme='dark']) .doneIcon,
+:global([data-theme='dark']) .lessonCurrent .typeIcon {
+  color: var(--color-secondary-30-light);
+}
+
+:global([data-theme='dark']) .lessonCurrent,
+:global([data-theme='dark']) .lessonCurrent:hover {
+  background-color: rgba(61, 193, 204, 0.1);
+}
+
+:global([data-theme='dark']) .pending {
+  border-color: #5F6B7C;
 }
 
 @media (max-width: 1023px) {
   .container {
     max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .fill,
+  .lesson {
+    transition: none;
   }
 }

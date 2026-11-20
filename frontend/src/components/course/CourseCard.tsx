@@ -123,7 +123,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     if (subNuevos > 0) {
       footer = (
         <>
-          <span className={styles.hint}>{plural(subNuevos, 'curso nuevo', 'cursos nuevos')} en este programa</span>
+          <span className={styles.hint}>{plural(subNuevos, 'curso nuevo', 'cursos nuevos')} en este proceso</span>
           <span className={styles.cta}>Inscribirme<Arrow /></span>
         </>
       );
@@ -143,7 +143,7 @@ export default function CourseCard({ course }: CourseCardProps) {
               {subDone} de {subTotal}
             </span>
           </span>
-          <span className={`${styles.cta} ${styles.ctaSoft}`}>{terminado ? 'Ver programa' : 'Continuar'}</span>
+          <span className={`${styles.cta} ${styles.ctaSoft}`}>{terminado ? 'Ver proceso' : 'Continuar'}</span>
         </>
       );
     } else if (!locked) {
@@ -218,7 +218,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 <path d="M12 3 3 8l9 5 9-5-9-5Z" />
                 <path d="m3 13 9 5 9-5" />
               </svg>
-              Programa
+              Proceso
             </span>
           )}
           {locked && (
@@ -255,7 +255,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
           {isGlobal ? (
             titulos.length > 0 && (
-              <ol className={styles.programList} aria-label="Cursos del programa">
+              <ol className={styles.programList} aria-label="Cursos del proceso">
                 {titulos.slice(0, MAX_TITULOS).map((sub, i) => (
                   <li key={`${i}-${sub}`}>
                     <span className={styles.programNum} aria-hidden="true">{i + 1}</span>

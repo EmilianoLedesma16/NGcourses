@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
-import CourseInfoContent from '@/components/course/CourseInfoContent';
+import CourseInfoContent, { type CoursePadre } from '@/components/course/CourseInfoContent';
 import { cursosApi } from '@/lib/api/client';
 import type { CourseInfo } from '@/types/course';
 import { toSyllabus } from '@/lib/syllabus';
@@ -36,6 +36,7 @@ interface ApiCurso {
   instructor_nombre: string | null;
   lo_que_aprenderas?: string[];
   requisitos?: string | null;
+  padre?: CoursePadre | null;
 }
 
 const nivelLabel: Record<string, string> = {
@@ -54,6 +55,7 @@ export default function AdminCursoPreviewPage() {
   const id = params.id as string;
 
   const [course, setCourse] = useState<CourseInfo | null>(null);
+  const [padre, setPadre] = useState<CoursePadre | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [actionLoading, setActionLoading] = useState<ActionType | null>(null);
@@ -65,6 +67,7 @@ export default function AdminCursoPreviewPage() {
     cursosApi.get(id)
       .then((raw) => {
         const cursoRaw = raw as ApiCurso;
+        setPadre(cursoRaw.padre ?? null);
         const totalLecciones = cursoRaw.modulos?.reduce(
           (acc: number, m: ApiModulo) => acc + m.lecciones.length,
           0
@@ -225,7 +228,7 @@ export default function AdminCursoPreviewPage() {
       </div>
 
       {/* Vista del curso (igual que alumno) */}
-      <CourseInfoContent course={course} backHref="/admin/solicitudes" />
+      <CourseInfoContent course={course} backHref="/admin/solicitudes" padre={padre} />
 
       {/* Modal de confirmación */}
       {confirmAction && (

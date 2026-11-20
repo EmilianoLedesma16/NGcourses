@@ -22,6 +22,7 @@ from app.models.contenido import (
     BunnyVideoStatusResponse,
     CursoCreate,
     CursoDetalle,
+    CursoHermanoRef,
     CursoPadreRef,
     SubcursoResumen,
     SubcursosUpdate,
@@ -559,6 +560,7 @@ def _llenar_relacion_global(
         id=padre.id, titulo=padre.titulo, posicion=i + 1, total=len(hermanos),
         anterior_id=ant.id if ant else None, anterior_titulo=ant.titulo if ant else None,
         siguiente_id=sig.id if sig else None, siguiente_titulo=sig.titulo if sig else None,
+        hermanos=[CursoHermanoRef(id=h.id, titulo=h.titulo) for h in hermanos],
     )
 
 
@@ -618,7 +620,7 @@ def update_curso(
     ):
         raise HTTPException(
             status_code=409,
-            detail="No puedes publicar el curso global: agrega al menos un curso publicado.",
+            detail="No puedes publicar el proceso: agrega al menos un curso publicado.",
         )
 
     if curso_in.estado in (EstadoCurso.PUBLICADO, EstadoCurso.REVISION):
@@ -883,7 +885,7 @@ def create_modulo(
     if db_curso.tipo == TipoCurso.GLOBAL:
         raise HTTPException(
             status_code=409,
-            detail="Un curso global no tiene módulos: agrega cursos dentro de él.",
+            detail="Un proceso no tiene módulos: agrega cursos dentro de él.",
         )
 
     db_modulo = crud.create_modulo(session=session, modulo_in=modulo_in, curso_id=curso_id)

@@ -117,7 +117,7 @@ export default function GlobalCourseContent({
   if (viewOnlyMode) {
     actionBody = (
       <p className={styles.nextUp}>
-        Curso global con {plural(subs.length, 'curso', 'cursos')}. Abre cada uno para revisar su contenido.
+        Proceso con {plural(subs.length, 'curso', 'cursos')}. Abre cada uno para revisar su contenido.
       </p>
     );
   } else if (enrolled) {
@@ -162,8 +162,8 @@ export default function GlobalCourseContent({
           <div className={own.nuevos} role="status">
             <p>
               {nuevos === 1
-                ? 'Se agregó 1 curso nuevo a este programa.'
-                : `Se agregaron ${nuevos} cursos nuevos a este programa.`}
+                ? 'Se agregó 1 curso nuevo a este proceso.'
+                : `Se agregaron ${nuevos} cursos nuevos a este proceso.`}
             </p>
             <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onInscribirse} disabled={enrollLoading}>
               {enrollLoading ? 'Inscribiendo…' : nuevos === 1 ? 'Inscribirme al curso nuevo' : `Inscribirme a los ${nuevos} nuevos`}
@@ -243,7 +243,7 @@ export default function GlobalCourseContent({
 
         <div className={styles.layout}>
           <section className={styles.hero} aria-labelledby="course-title">
-            <p className={styles.eyebrow}>{course.marca === 'nextgen' ? 'NextGenIA' : 'RAM'} · Curso global</p>
+            <p className={styles.eyebrow}>{course.marca === 'nextgen' ? 'NextGenIA' : 'RAM'} · Proceso</p>
             <h1 id="course-title" className={styles.courseTitle}>{cleanTitle(course.titulo)}</h1>
             {course.descripcion && <p className={styles.lead}>{course.descripcion}</p>}
             <div className={styles.facts}>
