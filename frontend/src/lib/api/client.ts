@@ -358,6 +358,54 @@ export const calificacionesApi = {
   votar: (id: string, voto: number) => apiClient.post(`/api/v1/calificaciones/${id}/votar`, { voto }),
 };
 
+export interface ComentarioAutor {
+  id: string;
+  nombre: string;
+  avatar_url: string | null;
+}
+
+export interface Comentario {
+  id: string;
+  leccion_id: string;
+  parent_id: string | null;
+  contenido: string;
+  creado_en: string;
+  editado_en: string | null;
+  autor: ComentarioAutor;
+  likes: number;
+  me_gusta: boolean;
+  es_mio: boolean;
+  puede_borrar: boolean;
+  respuestas: Comentario[];
+}
+
+export interface ComentariosResp {
+  data: Comentario[];
+  /** Comentarios raíz (para paginar). */
+  count: number;
+  /** Incluye respuestas. */
+  total: number;
+}
+
+export type OrdenComentarios = 'recientes' | 'populares';
+
+export const comentariosApi = {
+  list: (leccion_id: string, opts: { skip?: number; limit?: number; orden?: OrdenComentarios } = {}) => {
+    const q = new URLSearchParams({
+      skip: String(opts.skip ?? 0),
+      limit: String(opts.limit ?? 20),
+      orden: opts.orden ?? 'recientes',
+    });
+    return apiClient.get<ComentariosResp>(`/api/v1/lecciones/${leccion_id}/comentarios?${q}`);
+  },
+  create: (leccion_id: string, contenido: string, parent_id?: string) =>
+    apiClient.post<Comentario>(`/api/v1/lecciones/${leccion_id}/comentarios`, { contenido, parent_id }),
+  update: (id: string, contenido: string) => apiClient.patch<Comentario>(`/api/v1/comentarios/${id}`, { contenido }),
+  remove: (id: string) => apiClient.delete<{ message: string }>(`/api/v1/comentarios/${id}`),
+  like: (id: string) => apiClient.put<{ likes: number; me_gusta: boolean }>(`/api/v1/comentarios/${id}/like`, {}),
+  unlike: (id: string) => apiClient.delete<{ likes: number; me_gusta: boolean }>(`/api/v1/comentarios/${id}/like`),
+};
+
 export const pagosApi = {
   /** Crea una orden PayPal y un Pago(pendiente) en el backend. */
   crearOrden: (curso_id: string) =>
