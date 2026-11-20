@@ -1,0 +1,65 @@
+# Actualizaciones automaticas de dependencias.
+# cooldown: Dependabot espera N dias desde que se publica una version antes de proponerla.
+# Casi todos los paquetes maliciosos (cuentas de mantenedores robadas) se detectan y
+# retiran en horas o dias, asi que no instalamos nada recien publicado.
+# Las alertas de seguridad (security updates) NO esperan el cooldown.
+version: 2
+updates:
+  # Frontend: workspace npm, el lockfile canonico vive en la raiz
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Mexico_City"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    open-pull-requests-limit: 5
+    groups:
+      npm-menores:
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  # Backend: uv.lock
+  - package-ecosystem: "uv"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Mexico_City"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    open-pull-requests-limit: 5
+    groups:
+      python-menores:
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  # Imagenes base de Docker
+  - package-ecosystem: "docker"
+    directories:
+      - "/frontend"
+      - "/backend"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "fix(docker)"
+
+  # Acciones de GitHub usadas en los workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "fix(ci)"

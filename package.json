@@ -17,8 +17,15 @@
     "lint:frontend": "npm run lint --workspace=frontend",
     "generate-client": "bash scripts/generate-client.sh"
   },
+  "overrides": {
+    "brace-expansion@1": "^1.1.22",
+    "@sentry/bundler-plugins": {
+      "glob": "^14.0.3"
+    },
+    "eslint-plugin-react-hooks": "7.0.1"
+  },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=24.0.0",
     "npm": ">=10.0.0"
   }
 }

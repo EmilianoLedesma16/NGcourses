@@ -74,7 +74,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         - NODE_ENV=production
     restart: always
