@@ -4,6 +4,7 @@ from app.api.routes import (
     admin_stats,
     calificaciones,
     categorias,
+    comentarios,
     certificados,
     cursos,
     etiquetas,
@@ -39,6 +40,7 @@ api_router.include_router(invitaciones.router)
 api_router.include_router(progreso.router)
 api_router.include_router(quiz.router)
 api_router.include_router(calificaciones.router)
+api_router.include_router(comentarios.router)
 api_router.include_router(certificados.router)
 api_router.include_router(organizaciones.router)
 api_router.include_router(pagos.router)
