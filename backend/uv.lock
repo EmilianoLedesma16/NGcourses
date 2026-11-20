@@ -1,13 +1,13 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10, <4.0"
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
@@ -56,10 +56,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -146,7 +146,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">2.0" },
     { name = "pydantic-settings", specifier = ">=2.2.1,<3.0.0" },
     { name = "pyjwt", specifier = ">=2.8.0,<3.0.0" },
-    { name = "pypdfium2", specifier = ">=4.30,<5" },
+    { name = "pypdfium2", specifier = ">=5.15.0,<6" },
     { name = "python-multipart", specifier = ">=0.0.7,<1.0.0" },
     { name = "reportlab", specifier = ">=4.2.0,<5.0.0" },
     { name = "resend", specifier = ">=2.0.0,<3.0.0" },
@@ -243,10 +243,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -636,10 +636,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -784,10 +784,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -819,7 +819,7 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "wrapt", marker = "python_full_version < '3.12'" },
+    { name = "wrapt" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/49/85/12f0a49a7c4ffb70572b6c2ef13c90c88fd190debda93b23f026b25f9634/deprecated-1.3.1.tar.gz", hash = "sha256:b1b50e0ff0c1fddaa5708a2c6b0a6588bb09b892825ab2b214ac9ea9d92a5223", size = 2932523, upload-time = "2025-10-30T08:19:02.757Z" }
 wheels = [
@@ -833,14 +833,14 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
 ]
 dependencies = [
-    { name = "wrapt", marker = "python_full_version >= '3.12'" },
+    { name = "wrapt" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/61/46/f6958cdfa8a801fc845e981a8a958dba2e74a386b026a8fd5cae58423f1f/deprecated-3.0.1.tar.gz", hash = "sha256:2f5a9fecc9961e26462846cf1e57f73a612b1d0b79c27dceeed8de647beadcee", size = 1074378, upload-time = "2026-10-30T11:15:39.954Z" }
 wheels = [
@@ -875,10 +875,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -936,7 +936,7 @@ name = "exceptiongroup"
 version = "1.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/85/ac/f882fe3234606340c8729372da0fb98c634b97a560c9d375d9afea21496b/exceptiongroup-1.3.2.tar.gz", hash = "sha256:ca82e69f0cb535fbde934885744b67669a3efddd50fe7bc00d3398839fcaddec", size = 34687, upload-time = "2026-11-19T22:10:16.815Z" }
 wheels = [
@@ -951,13 +951,13 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "annotated-doc", version = "0.0.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "anyio", marker = "python_full_version < '3.11'" },
-    { name = "opentelemetry-api", marker = "python_full_version < '3.11'" },
-    { name = "pydantic", marker = "python_full_version < '3.11'" },
-    { name = "starlette", version = "1.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
-    { name = "typing-inspection", marker = "python_full_version < '3.11'" },
+    { name = "annotated-doc", version = "0.0.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "anyio" },
+    { name = "opentelemetry-api" },
+    { name = "pydantic" },
+    { name = "starlette", version = "1.7.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4e/7b/ae546e10f153fcf9a6afd8b9fe4730bdfeb8fdcb93178d54122973ef3f4c/fastapi-0.162.5.tar.gz", hash = "sha256:1ca37f64f61c99cebd38636e67525fb721c5e8c1169f07f2a35d73b0a63265d4", size = 531785, upload-time = "2026-11-11T22:29:53.177Z" }
 wheels = [
@@ -966,18 +966,18 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "email-validator", marker = "python_full_version < '3.11'" },
-    { name = "fastapi-cli", version = "0.0.33", source = { registry = "https://pypi.org/simple" }, extra = ["standard"], marker = "python_full_version < '3.11'" },
-    { name = "fastar", marker = "python_full_version < '3.11'" },
-    { name = "httpx", marker = "python_full_version < '3.11'" },
-    { name = "httpx2", version = "2.14.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "jinja2", marker = "python_full_version < '3.11'" },
-    { name = "opentelemetry-exporter-otlp-proto-http", marker = "python_full_version < '3.11'" },
-    { name = "opentelemetry-sdk", marker = "python_full_version < '3.11'" },
-    { name = "pydantic-extra-types", marker = "python_full_version < '3.11'" },
-    { name = "pydantic-settings", version = "2.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "python-multipart", version = "0.0.32", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version < '3.11'" },
+    { name = "email-validator" },
+    { name = "fastapi-cli", version = "0.0.33", source = { registry = "https://pypi.org/simple" }, extra = ["standard"] },
+    { name = "fastar" },
+    { name = "httpx" },
+    { name = "httpx2", version = "2.14.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "jinja2" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+    { name = "pydantic-extra-types" },
+    { name = "pydantic-settings", version = "2.15.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "python-multipart", version = "0.0.32", source = { registry = "https://pypi.org/simple" } },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [[package]]
@@ -987,21 +987,21 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "annotated-doc", version = "0.0.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "anyio", marker = "python_full_version >= '3.11'" },
-    { name = "opentelemetry-api", marker = "python_full_version >= '3.11'" },
-    { name = "pydantic", marker = "python_full_version >= '3.11'" },
-    { name = "starlette", version = "1.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.11'" },
-    { name = "typing-inspection", marker = "python_full_version >= '3.11'" },
+    { name = "annotated-doc", version = "0.0.7", source = { registry = "https://pypi.org/simple" } },
+    { name = "anyio" },
+    { name = "opentelemetry-api" },
+    { name = "pydantic" },
+    { name = "starlette", version = "1.10.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/27/f9/e7820ef181026fea100bde02d811445bf8e883362d7092b6928767147056/fastapi-0.165.0.tar.gz", hash = "sha256:dd94d4128319c1e1d50535ab023ab698f850a4d2822f0e181747b46f4ff3c0ab", size = 557984, upload-time = "2026-11-18T19:15:37.076Z" }
 wheels = [
@@ -1010,18 +1010,18 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "email-validator", marker = "python_full_version >= '3.11'" },
-    { name = "fastapi-cli", version = "0.0.34", source = { registry = "https://pypi.org/simple" }, extra = ["standard"], marker = "python_full_version >= '3.11'" },
-    { name = "fastar", marker = "python_full_version >= '3.11'" },
-    { name = "httpx", marker = "python_full_version >= '3.11'" },
-    { name = "httpx2", version = "2.16.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "jinja2", marker = "python_full_version >= '3.11'" },
-    { name = "opentelemetry-exporter-otlp-proto-http", marker = "python_full_version >= '3.11'" },
-    { name = "opentelemetry-sdk", marker = "python_full_version >= '3.11'" },
-    { name = "pydantic-extra-types", marker = "python_full_version >= '3.11'" },
-    { name = "pydantic-settings", version = "2.16.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "python-multipart", version = "0.0.34", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version >= '3.11'" },
+    { name = "email-validator" },
+    { name = "fastapi-cli", version = "0.0.34", source = { registry = "https://pypi.org/simple" }, extra = ["standard"] },
+    { name = "fastar" },
+    { name = "httpx" },
+    { name = "httpx2", version = "2.16.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "jinja2" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+    { name = "pydantic-extra-types" },
+    { name = "pydantic-settings", version = "2.16.3", source = { registry = "https://pypi.org/simple" } },
+    { name = "python-multipart", version = "0.0.34", source = { registry = "https://pypi.org/simple" } },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [[package]]
@@ -1032,10 +1032,10 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "rich-toolkit", marker = "python_full_version < '3.11'" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
-    { name = "typer", version = "0.29.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version < '3.11'" },
+    { name = "rich-toolkit" },
+    { name = "tomli" },
+    { name = "typer", version = "0.29.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/41/8c/d2fe2da44fe68a442bbfea5e6436e2de7829c0c2d419a7c314e2e91ae95f/fastapi_cli-0.0.33.tar.gz", hash = "sha256:94f19bcde4bd6ae26328292ac864082543262b7ee9f5d11bd7224614c22fb958", size = 26627, upload-time = "2026-11-11T09:18:05.981Z" }
 wheels = [
@@ -1044,8 +1044,8 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "fastapi-cloud-cli", marker = "python_full_version < '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version < '3.11'" },
+    { name = "fastapi-cloud-cli" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [[package]]
@@ -1055,17 +1055,17 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "rich-toolkit", marker = "python_full_version >= '3.11'" },
-    { name = "typer", version = "0.29.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version >= '3.11'" },
+    { name = "rich-toolkit" },
+    { name = "typer", version = "0.29.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d8/5e/3a9e46c4cd730cfe564a86553772b00e5bcebf773da470941ea862ca0b2b/fastapi_cli-0.0.34.tar.gz", hash = "sha256:7eeb74cf83edd75d22a9289713db03d8a0be3ed7a8daa48a3703a12d4f2a4615", size = 26477, upload-time = "2026-11-13T16:44:56.651Z" }
 wheels = [
@@ -1074,8 +1074,8 @@ wheels = [
 
 [package.optional-dependencies]
 standard = [
-    { name = "fastapi-cloud-cli", marker = "python_full_version >= '3.11'" },
-    { name = "uvicorn", extra = ["standard"], marker = "python_full_version >= '3.11'" },
+    { name = "fastapi-cloud-cli" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [[package]]
@@ -1360,8 +1360,8 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "h11", marker = "python_full_version < '3.11'" },
-    { name = "truststore", marker = "python_full_version < '3.11'" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/30/ff/b53af1b49bb2cb5fa97c92215614b173ca5c1a99ded80e2d52f15a94fa6d/httpcore2-2.14.0.tar.gz", hash = "sha256:4f57a1a8249fe6af589d935cfd456f1d13bbdcb0f0fc72af9142368fc94811d7", size = 69096, upload-time = "2026-10-18T16:29:21.898Z" }
 wheels = [
@@ -1380,8 +1380,8 @@ resolution-markers = [
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "h11", marker = "(python_full_version >= '3.11' and sys_platform != 'emscripten') or (python_full_version == '3.11.*' and sys_platform == 'emscripten') or (python_full_version >= '3.15' and sys_platform == 'emscripten')" },
-    { name = "truststore", marker = "(python_full_version >= '3.11' and sys_platform != 'emscripten') or (python_full_version == '3.11.*' and sys_platform == 'emscripten') or (python_full_version >= '3.15' and sys_platform == 'emscripten')" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/92/9d/df40b41f7db0370f82019820709244e7b660c52aa3da3c9e5c4e8141f6e6/httpcore2-2.16.2.tar.gz", hash = "sha256:6c519d0f7b44f7269fa9bbb4d2763db395a4a2370f046d8e8e0a4b38227815d2", size = 70064, upload-time = "2026-11-16T10:12:19.491Z" }
 wheels = [
@@ -1523,11 +1523,11 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "anyio", marker = "python_full_version < '3.11' and sys_platform != 'emscripten'" },
-    { name = "httpcore2", version = "2.14.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' and sys_platform != 'emscripten'" },
-    { name = "idna", marker = "python_full_version < '3.11'" },
-    { name = "truststore", marker = "python_full_version < '3.11' and sys_platform != 'emscripten'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "anyio", marker = "sys_platform != 'emscripten'" },
+    { name = "httpcore2", version = "2.14.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten'" },
+    { name = "idna" },
+    { name = "truststore", marker = "sys_platform != 'emscripten'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e8/67/58353f1848b4ba568e1ec22ea1e0d8e039f0bca5fde7e2d1f07739fd83e7/httpx2-2.14.0.tar.gz", hash = "sha256:47ad61a3c40282cd8d0dc96311531f00f5bfc71a066c6fe3b36d8f63fb9e4f6e", size = 102036, upload-time = "2026-10-18T16:29:22.627Z" }
 wheels = [
@@ -1541,20 +1541,20 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "anyio", marker = "python_full_version >= '3.11' and sys_platform != 'emscripten'" },
-    { name = "httpcore2", version = "2.16.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11' and sys_platform != 'emscripten'" },
+    { name = "anyio", marker = "sys_platform != 'emscripten'" },
+    { name = "httpcore2", version = "2.16.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'emscripten'" },
     { name = "httpx2-jsfetch", marker = "python_full_version >= '3.12' and sys_platform == 'emscripten'" },
-    { name = "idna", marker = "python_full_version >= '3.11'" },
-    { name = "truststore", marker = "python_full_version >= '3.11' and sys_platform != 'emscripten'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.11' and python_full_version < '3.13'" },
+    { name = "idna" },
+    { name = "truststore", marker = "sys_platform != 'emscripten'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/77/6515121dc5ac3c743ad1bff5afe635bcd1a3f23cc40db3c5c89f7d02917d/httpx2-2.16.2.tar.gz", hash = "sha256:748b615678f07d8e3b183efe81ad13b655ca88bfc56ce4589219b2d442860574", size = 103370, upload-time = "2026-11-16T10:12:20.49Z" }
 wheels = [
@@ -2097,10 +2097,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -2424,10 +2424,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -2858,9 +2858,9 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "pydantic", marker = "python_full_version < '3.11'" },
-    { name = "python-dotenv", marker = "python_full_version < '3.11'" },
-    { name = "typing-inspection", marker = "python_full_version < '3.11'" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-inspection" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/68/ca/31c57507b13119d7d3cfa1576dad2911a4861e3be07b579395f4e9d393f9/pydantic_settings-2.15.0.tar.gz", hash = "sha256:694b793e84f766ba76a90ebdefc01d0a9a045dab0382bee70393da93712ad117", size = 261253, upload-time = "2026-08-07T09:24:57.419Z" }
 wheels = [
@@ -2874,18 +2874,18 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "pydantic", marker = "python_full_version >= '3.11'" },
-    { name = "python-dotenv", marker = "python_full_version >= '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.11'" },
-    { name = "typing-inspection", marker = "python_full_version >= '3.11'" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/59/28/227c843eedd29bd78e132e5aafa420d83154b10465c312f9c21ff2eaf77d/pydantic_settings-2.16.3.tar.gz", hash = "sha256:10e36f616623ebb586c05ca3d3cd22927146869db413d4f14c20c514442a1337", size = 311716, upload-time = "2026-11-13T11:18:30.102Z" }
 wheels = [
@@ -2915,22 +2915,32 @@ wheels = [
 
 [[package]]
 name = "pypdfium2"
-version = "4.30.0"
+version = "5.15.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/14/838b3ba247a0ba92e4df5d23f2bea9478edcfd72b78a39d6ca36ccd84ad2/pypdfium2-4.30.0.tar.gz", hash = "sha256:48b5b7e5566665bc1015b9d69c1ebabe21f6aee468b509531c3c8318eeee2e16", size = 140239, upload-time = "2024-05-09T18:33:17.552Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/7d/c1761532c87e2da867a1049bf9142a17efec0b00c6326a51964bec2388ea/pypdfium2-5.15.0.tar.gz", hash = "sha256:150f71bc385fe66d82fc59514b31d00dcfc97a1143d6b4cb09aa6f532f3f3510", size = 701448, upload-time = "2026-11-06T13:24:04.22Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/9a/c8ff5cc352c1b60b0b97642ae734f51edbab6e28b45b4fcdfe5306ee3c83/pypdfium2-4.30.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:b33ceded0b6ff5b2b93bc1fe0ad4b71aa6b7e7bd5875f1ca0cdfb6ba6ac01aab", size = 2837254, upload-time = "2024-05-09T18:32:48.653Z" },
-    { url = "https://files.pythonhosted.org/packages/21/8b/27d4d5409f3c76b985f4ee4afe147b606594411e15ac4dc1c3363c9a9810/pypdfium2-4.30.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:4e55689f4b06e2d2406203e771f78789bd4f190731b5d57383d05cf611d829de", size = 2707624, upload-time = "2024-05-09T18:32:51.458Z" },
-    { url = "https://files.pythonhosted.org/packages/11/63/28a73ca17c24b41a205d658e177d68e198d7dde65a8c99c821d231b6ee3d/pypdfium2-4.30.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4e6e50f5ce7f65a40a33d7c9edc39f23140c57e37144c2d6d9e9262a2a854854", size = 2793126, upload-time = "2024-05-09T18:32:53.581Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/96/53b3ebf0955edbd02ac6da16a818ecc65c939e98fdeb4e0958362bd385c8/pypdfium2-4.30.0-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:3d0dd3ecaffd0b6dbda3da663220e705cb563918249bda26058c6036752ba3a2", size = 2591077, upload-time = "2024-05-09T18:32:55.99Z" },
-    { url = "https://files.pythonhosted.org/packages/ec/ee/0394e56e7cab8b5b21f744d988400948ef71a9a892cbeb0b200d324ab2c7/pypdfium2-4.30.0-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:cc3bf29b0db8c76cdfaac1ec1cde8edf211a7de7390fbf8934ad2aa9b4d6dfad", size = 2864431, upload-time = "2024-05-09T18:32:57.911Z" },
-    { url = "https://files.pythonhosted.org/packages/65/cd/3f1edf20a0ef4a212a5e20a5900e64942c5a374473671ac0780eaa08ea80/pypdfium2-4.30.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f1f78d2189e0ddf9ac2b7a9b9bd4f0c66f54d1389ff6c17e9fd9dc034d06eb3f", size = 2812008, upload-time = "2024-05-09T18:32:59.886Z" },
-    { url = "https://files.pythonhosted.org/packages/c8/91/2d517db61845698f41a2a974de90762e50faeb529201c6b3574935969045/pypdfium2-4.30.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:5eda3641a2da7a7a0b2f4dbd71d706401a656fea521b6b6faa0675b15d31a163", size = 6181543, upload-time = "2024-05-09T18:33:02.597Z" },
-    { url = "https://files.pythonhosted.org/packages/ba/c4/ed1315143a7a84b2c7616569dfb472473968d628f17c231c39e29ae9d780/pypdfium2-4.30.0-py3-none-musllinux_1_1_i686.whl", hash = "sha256:0dfa61421b5eb68e1188b0b2231e7ba35735aef2d867d86e48ee6cab6975195e", size = 6175911, upload-time = "2024-05-09T18:33:05.376Z" },
-    { url = "https://files.pythonhosted.org/packages/7a/c4/9e62d03f414e0e3051c56d5943c3bf42aa9608ede4e19dc96438364e9e03/pypdfium2-4.30.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:f33bd79e7a09d5f7acca3b0b69ff6c8a488869a7fab48fdf400fec6e20b9c8be", size = 6267430, upload-time = "2024-05-09T18:33:08.067Z" },
-    { url = "https://files.pythonhosted.org/packages/90/47/eda4904f715fb98561e34012826e883816945934a851745570521ec89520/pypdfium2-4.30.0-py3-none-win32.whl", hash = "sha256:ee2410f15d576d976c2ab2558c93d392a25fb9f6635e8dd0a8a3a5241b275e0e", size = 2775951, upload-time = "2024-05-09T18:33:10.567Z" },
-    { url = "https://files.pythonhosted.org/packages/25/bd/56d9ec6b9f0fc4e0d95288759f3179f0fcd34b1a1526b75673d2f6d5196f/pypdfium2-4.30.0-py3-none-win_amd64.whl", hash = "sha256:90dbb2ac07be53219f56be09961eb95cf2473f834d01a42d901d13ccfad64b4c", size = 2892098, upload-time = "2024-05-09T18:33:13.107Z" },
-    { url = "https://files.pythonhosted.org/packages/be/7a/097801205b991bc3115e8af1edb850d30aeaf0118520b016354cf5ccd3f6/pypdfium2-4.30.0-py3-none-win_arm64.whl", hash = "sha256:119b2969a6d6b1e8d55e99caaf05290294f2d0fe49c12a3f17102d01c441bd29", size = 2752118, upload-time = "2024-05-09T18:33:15.489Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/07/014234fb36a35badcdf0679b703096b3f58aef6daa25031bc8490654f99e/pypdfium2-5.15.0-py3-none-android_23_arm64_v8a.whl", hash = "sha256:016305ec87e4a1f0bc0c9e8784e18abbd02db65b03eed9aa38d7e678837544b5", size = 3609375, upload-time = "2026-11-06T13:23:24.72Z" },
+    { url = "https://files.pythonhosted.org/packages/02/22/437a1399b442286b971264f5feed2fc658ce63e8fa373c5fef1c4c3a9ac6/pypdfium2-5.15.0-py3-none-android_23_armeabi_v7a.whl", hash = "sha256:15510ad03591f5ef9e49ae2f302c970bf3d44b30ed417fcdce176e60d3ca9dee", size = 3027857, upload-time = "2026-11-06T13:23:27.046Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/69/c727b5f4bdbb39c9a2c02be0bc2776eee1d66f6f2a1bfc12171332c952c8/pypdfium2-5.15.0-py3-none-macosx_13_0_arm64.whl", hash = "sha256:2671c87cea5c80200e082f07029cb42ba320157d0878b84fb37f8f75c92e5e93", size = 3715324, upload-time = "2026-11-06T13:23:28.785Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/a4/6c346310abb605441cf93057f8eb5c582b1a8b657a30ada078e00d6102bf/pypdfium2-5.15.0-py3-none-macosx_13_0_x86_64.whl", hash = "sha256:6a5af41e798a77125ae6e28e335e282c67ab10c21379a6e61d25531f440a9fdd", size = 3944858, upload-time = "2026-11-06T13:23:30.763Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/8e/01c2216af37b3718e9ab7fe944d7502a59b20ab03aa15ad7eb8e0756260c/pypdfium2-5.15.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b289c929fd260570192b85780ba33389d8d2b125690209247b054e89c2bbb542", size = 3891824, upload-time = "2026-11-06T13:23:32.355Z" },
+    { url = "https://files.pythonhosted.org/packages/62/d4/70b5ff0c8726893968f35c024416f875ee0fa0cf1ca875ea0b6d1ca5de57/pypdfium2-5.15.0-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7abc7bf1ebb96b8db6eb4a244d59963b1efb2e5ede55bd910165184cbdbfb9a4", size = 3600082, upload-time = "2026-11-06T13:23:33.978Z" },
+    { url = "https://files.pythonhosted.org/packages/91/c4/76605509c2520e91e6b5991ecad448066e18f19a9f0687f3fe467a444b8b/pypdfium2-5.15.0-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e8dfc25a47064fab25c9f8dc2f547e28f696ee4d66ac679cbd4bf445f5d0d8f1", size = 4081168, upload-time = "2026-11-06T13:23:35.622Z" },
+    { url = "https://files.pythonhosted.org/packages/25/3f/6d6a40119392fe4089e9dfb3330622f0a2d7bde3874c196d76f97502352d/pypdfium2-5.15.0-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:78dc5ce4a0f41489c632d3be5dc8eef844e6ac6ad7076c90795efe449661b1d5", size = 4472102, upload-time = "2026-11-06T13:23:37.349Z" },
+    { url = "https://files.pythonhosted.org/packages/27/ba/e01bd66da375def43450312ab471e6d84c28f19608078ee7afb497958716/pypdfium2-5.15.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:837520be94ab80285a5ac0db3ba7d1a331b1c811b69246f273b1c18a1923aea5", size = 4025240, upload-time = "2026-11-06T13:23:39.03Z" },
+    { url = "https://files.pythonhosted.org/packages/89/6b/e9061f70468f2dcdde9a4e1608f23b1f534f934aca8395e35396e20c5dcf/pypdfium2-5.15.0-py3-none-manylinux_2_27_s390x.manylinux_2_28_s390x.whl", hash = "sha256:7693108fada8a4f954a176ef5f74aedfc27082cd25738002bda33b0845d5415e", size = 4189575, upload-time = "2026-11-06T13:23:40.787Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/ae/848eea1fc18382f25469ad45e7d730ed330600fdd04cefaa91ceb258f4a7/pypdfium2-5.15.0-py3-none-manylinux_2_34_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:0ce278f4db918cb4530288f25dd1d9c71725edda94b9cea774b80b710b8ad4ae", size = 4102385, upload-time = "2026-11-06T13:23:42.438Z" },
+    { url = "https://files.pythonhosted.org/packages/85/8a/eff88aa74ded66e373b0fe2907dbda841ec33dbd137c92eed12bce946b0f/pypdfium2-5.15.0-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:c0269faf96f3f8cc3184df89a47e0fc7dd054d20de4fe867794d9df6190e4421", size = 5118121, upload-time = "2026-11-06T13:23:44.186Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/35/8cf2b21333e998eaab5e3623217b070e7bf0031bacbafeb90ff5b051e168/pypdfium2-5.15.0-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:ccc5a93a44ce309a9392893f7dba99d50e9d7030f82a0441e85a23bcf9ef377e", size = 4647433, upload-time = "2026-11-06T13:23:46.434Z" },
+    { url = "https://files.pythonhosted.org/packages/28/a1/69adb784bc67d6acb8bfd81eaf8b0176c33fac74e252bb00cd85378d83eb/pypdfium2-5.15.0-py3-none-musllinux_1_2_i686.whl", hash = "sha256:7b9bd038fcb317bfcc1ad0d5c5626a57f4cd597fbe9772de61ec53721395dd68", size = 5392621, upload-time = "2026-11-06T13:23:48.311Z" },
+    { url = "https://files.pythonhosted.org/packages/65/f0/4638c395e665036f473ef7d674c18b2b72fde49e330d75bb1d28f0538908/pypdfium2-5.15.0-py3-none-musllinux_1_2_ppc64le.whl", hash = "sha256:dc6019a7f8152740f3de3c11782f642a54bd5aa41139e1db7b2be7134a461895", size = 5301532, upload-time = "2026-11-06T13:23:50.185Z" },
+    { url = "https://files.pythonhosted.org/packages/49/f2/65bba760e2b3d61a31efbef895c5ba9c32629dc637a4f2e8c8fc17e8cdfb/pypdfium2-5.15.0-py3-none-musllinux_1_2_riscv64.whl", hash = "sha256:96d1ae7886c877ad25fdcc56c59dd24ff349d81bd1be6f12b580b1bb64af4136", size = 4742174, upload-time = "2026-11-06T13:23:51.855Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/eb/7fb4c4428add242991251a1979417d136f38fa86734441da3bdba1902fb7/pypdfium2-5.15.0-py3-none-musllinux_1_2_s390x.whl", hash = "sha256:2b4754f630267e4efcf537e12786ebcfc5f2a36a761b19b58fc114fd0b8100e8", size = 5232829, upload-time = "2026-11-06T13:23:53.489Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/99/c134c0f4cf19e485274b5e83c6bfda66ab443c70f2a393f434742b1e5002/pypdfium2-5.15.0-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:bf0aaef8b2c9c8985139bc23734b6722ddd2025cd9e7f92151557d9af2c3d201", size = 5198348, upload-time = "2026-11-06T13:23:55.395Z" },
+    { url = "https://files.pythonhosted.org/packages/90/65/f290c8dbc584dae67654d3d0605c82208d8e6f771d6bc0438cd1dea48156/pypdfium2-5.15.0-py3-none-pyemscripten_2026_0_wasm32.whl", hash = "sha256:4dae1141b66ea7e6aaeb27962dee7d6cf78ef51e8ed97f487ddb72400d8ce581", size = 2700673, upload-time = "2026-11-06T13:23:57.573Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/ee/5fc816cc48a6623a27e676cb153567237e06dfd9fcd98159a8dd5f9d7c89/pypdfium2-5.15.0-py3-none-win32.whl", hash = "sha256:a7019cb4bf915ef11e9f1c5df46c9eee83738e64fab59d586eede4b85e6e7b9e", size = 4019344, upload-time = "2026-11-06T13:23:59.185Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/80/3610390f0d23acc75a9d496f5b9f1217bedf34612d68b39be988cffea98d/pypdfium2-5.15.0-py3-none-win_amd64.whl", hash = "sha256:eaa06c2e059ae0bd520acd67259a2ee29e15fc1751a566f4e2ac29ec345646f7", size = 4191811, upload-time = "2026-11-06T13:24:00.751Z" },
+    { url = "https://files.pythonhosted.org/packages/51/a3/504edcea3bf68a4d8b90079c560675c850db216bd6810af38266253cd3b6/pypdfium2-5.15.0-py3-none-win_arm64.whl", hash = "sha256:b7bb9d9f0b39bd2f234c1e8be6bed60943671652ed47101cc65ee22c0c8351ea", size = 3912747, upload-time = "2026-11-06T13:24:02.304Z" },
 ]
 
 [[package]]
@@ -2958,8 +2968,8 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "six", marker = "python_full_version < '3.11'" },
-    { name = "tzdata", marker = "python_full_version < '3.11'" },
+    { name = "six" },
+    { name = "tzdata" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0e/df/f15f80383f152452d8985b36d95cb8751f901a3e0ff4cd27f7e118f168e2/python_dateutil-3.0.0.tar.gz", hash = "sha256:7ebcb3c29a92f3ceafe79a7a48a5c45677e9e004bbeec5742ac0bbb00560b7a2", size = 271066, upload-time = "2026-10-21T23:41:45.075Z" }
 wheels = [
@@ -2973,15 +2983,15 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "tzdata", marker = "python_full_version >= '3.11'" },
+    { name = "tzdata" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/18/39/b3927f3616f6223832f9b760e4208e8a7c7e1dea2b4d9ad7d32a5d214c3a/python_dateutil-4.0.0.tar.gz", hash = "sha256:d7295ff14fdc0f92f662100bfb6c551d160ca090f2939f1ec5b9794265c03f06", size = 250419, upload-time = "2026-11-01T07:02:42.426Z" }
 wheels = [
@@ -3016,10 +3026,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
@@ -3459,8 +3469,8 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "anyio", marker = "python_full_version < '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "anyio" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7b/2b/3850dc6bf7ef71b088962eba31dafc6cffd2f96e577ebb0bb316df96da3e/starlette-1.7.0.tar.gz", hash = "sha256:c79f74ea63cff761804fbbfb182f1e0b440c2d07b164d24700c5a1bab5d6ff5d", size = 2736246, upload-time = "2026-09-23T07:30:26.35Z" }
 wheels = [
@@ -3474,16 +3484,16 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "anyio", marker = "python_full_version >= '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.11' and python_full_version < '3.13'" },
+    { name = "anyio" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/48/bb/3d8757f21e9a53d9035c9eb039a777047139a16bfdbedfc7a58241c3d914/starlette-1.10.0.tar.gz", hash = "sha256:b8399098d4c1e3522734f7235dc79b1fc967f96cf139c81e0fa30479e0685f9b", size = 2734356, upload-time = "2026-10-24T15:04:12.342Z" }
 wheels = [
@@ -3588,11 +3598,11 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "annotated-doc", version = "0.0.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "colorama", marker = "python_full_version < '3.11' and sys_platform == 'win32'" },
-    { name = "pydantic", marker = "python_full_version < '3.11'" },
-    { name = "rich", marker = "python_full_version < '3.11'" },
-    { name = "shellingham", marker = "python_full_version < '3.11'" },
+    { name = "annotated-doc", version = "0.0.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "pydantic" },
+    { name = "rich" },
+    { name = "shellingham" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/6c/aa/0de7986aa1fa856adb961c67345189b97d13f6e250b34ba68884df865f07/typer-0.29.1.tar.gz", hash = "sha256:ab6eb3880bf67ce96147734717f9ec333c06f66e361f3ea947d0be43da39f242", size = 205843, upload-time = "2026-11-11T09:18:39.782Z" }
 wheels = [
@@ -3606,19 +3616,19 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "annotated-doc", version = "0.0.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "colorama", marker = "python_full_version >= '3.11' and sys_platform == 'win32'" },
-    { name = "pydantic", marker = "python_full_version >= '3.11'" },
-    { name = "rich", marker = "python_full_version >= '3.11'" },
-    { name = "shellingham", marker = "python_full_version >= '3.11'" },
+    { name = "annotated-doc", version = "0.0.7", source = { registry = "https://pypi.org/simple" } },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "pydantic" },
+    { name = "rich" },
+    { name = "shellingham" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/bf/21/37383ece7d0a4995fb8ea97729207c4292b3ff94085002f37b2387063cfb/typer-0.29.2.tar.gz", hash = "sha256:b1998dc5f2c3dedafa1517a9521fa944cc4dc1fadcea085d81a3b10ebcaeb075", size = 205728, upload-time = "2026-11-18T11:09:46.189Z" }
 wheels = [
@@ -3923,10 +3933,10 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.12.*' and sys_platform != 'emscripten'",
     "python_full_version == '3.11.*'",
 ]
