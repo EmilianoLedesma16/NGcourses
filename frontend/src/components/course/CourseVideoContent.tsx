@@ -7,6 +7,7 @@ import VideoPlayer from '@/components/video/VideoPlayer';
 import LessonsSidebar from '@/components/course/LessonsSidebar';
 import VideoControls from '@/components/course/VideoControls';
 import QuizPlayer from '@/components/course/QuizPlayer';
+import LessonComments from '@/components/course/LessonComments';
 import type { Course, Lesson } from '@/types/course';
 import { progresoApi, certificadosApi } from '@/lib/api/client';
 import { normalizeQuizData } from '@/lib/quizData';
@@ -309,6 +310,7 @@ export default function CourseVideoContent({ initialCourse, inscripcionId, bunny
                   downloading={downloading}
                   readOnlyMode={readOnlyMode}
                 />
+                <LessonComments key={`comentarios-${currentLesson.id}`} lessonId={currentLesson.id} />
               </>
             )}
           </div>

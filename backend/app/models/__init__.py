@@ -7,6 +7,7 @@ from sqlmodel import SQLModel  # noqa: F401 – needed by alembic/env.py
 
 from app.models._enums import *  # noqa: F401, F403
 from app.models.calificacion import *  # noqa: F401, F403
+from app.models.comentario import *  # noqa: F401, F403
 from app.models.contenido import *  # noqa: F401, F403
 from app.models.inscripcion import *  # noqa: F401, F403
 from app.models.item import *  # noqa: F401, F403
