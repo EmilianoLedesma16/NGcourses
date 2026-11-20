@@ -1,12 +1,18 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import CourseCover from '@/components/shared/CourseCover';
 import StudentHeader from '@/components/shared/StudentHeader';
+import Toast, { type ToastData } from '@/components/shared/Toast';
+import ProcessCoursePanel from './ProcessCoursePanel';
+import { cleanTitle, plural, sinPrefijo } from './CourseSyllabus';
 import styles from './CourseInfoContent.module.css';
 import own from './GlobalCourseContent.module.css';
 import BackLink from '@/components/shared/BackLink';
+
+export { sinPrefijo };
 
 /** Un curso dentro del curso global, con el avance del alumno (GET /cursos/{id}). */
 export interface Subcurso {
@@ -38,6 +44,9 @@ export interface GlobalCourse {
 
 interface Props {
   course: GlobalCourse;
+  /** Curso del proceso que se muestra (viene en la URL como ?curso=). */
+  selectedId?: string | null;
+  onSelect?: (subId: string) => void;
   onInscribirse?: () => void;
   enrollLoading?: boolean;
   enrollError?: string | null;
@@ -46,23 +55,11 @@ interface Props {
   showUserMenu?: boolean;
   /** Supervisor o admin: solo lectura, cada curso se abre en modo revisión. */
   viewOnlyMode?: boolean;
+  /** Algo cambió en el avance: la página vuelve a pedir los contadores del proceso. */
+  onProgressChange?: () => void;
 }
 
 const LEVEL_STEPS: Record<string, number> = { Principiante: 1, Intermedio: 2, Avanzado: 3 };
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const cleanTitle = (t: string) => t.trim().replace(/\.$/, '');
-
-/** "Testeo: Desensamble" dentro de Testeo → "Desensamble". El título guardado no cambia. */
-export function sinPrefijo(titulo: string, padre: string): string {
-  const t = cleanTitle(titulo);
-  const p = cleanTitle(padre).toLowerCase();
-  const idx = t.indexOf(':');
-  if (idx > 0 && t.slice(0, idx).trim().toLowerCase() === p) {
-    const resto = t.slice(idx + 1).trim();
-    return resto ? resto.charAt(0).toLocaleUpperCase('es') + resto.slice(1) : t;
-  }
-  return t;
-}
 
 const Check = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} aria-hidden="true">
@@ -78,13 +75,21 @@ const ArrowIcon = (
 
 export default function GlobalCourseContent({
   course,
+  selectedId,
+  onSelect,
   onInscribirse,
   enrollLoading,
   enrollError,
   backHref = '/cursos',
   showUserMenu,
   viewOnlyMode = false,
+  onProgressChange,
 }: Props) {
+  const router = useRouter();
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const closeToast = useCallback(() => setToast(null), []);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
   const subs = course.subcursos;
   const enrolled = subs.some((s) => s.inscrito);
   // El siguiente curso: el primero inscrito que no está terminado.
@@ -92,32 +97,71 @@ export default function GlobalCourseContent({
   const next = nextIndex >= 0 ? subs[nextIndex] : null;
   // Cursos que se agregaron al global después de que el alumno se inscribió.
   const nuevos = enrolled ? subs.filter((s) => !s.inscrito).length : 0;
-  const puedeSumarNuevos = nuevos > 0 && course.puedeInscribirse !== false && Boolean(onInscribirse);
+  const puedeInscribirse = course.puedeInscribirse !== false && Boolean(onInscribirse);
+  const puedeSumarNuevos = nuevos > 0 && puedeInscribirse;
   const started = course.leccionesCompletadas > 0;
   const pct = course.leccionesTotal > 0
     ? Math.round((course.leccionesCompletadas / course.leccionesTotal) * 100)
     : 0;
 
-  const [open, setOpen] = useState<Set<number>>(new Set(nextIndex >= 0 ? [nextIndex] : []));
-  const toggle = (i: number) =>
-    setOpen((prev) => {
-      const n = new Set(prev);
-      if (n.has(i)) n.delete(i);
-      else n.add(i);
-      return n;
-    });
-  const allOpen = subs.length > 0 && open.size === subs.length;
-  const toggleAll = () => setOpen(allOpen ? new Set() : new Set(subs.map((_, i) => i)));
+  // Curso que muestra el selector: el de la URL, si no el siguiente, si no el primero.
+  const selectedIndex = Math.max(
+    0,
+    subs.findIndex((s) => s.id === selectedId) >= 0
+      ? subs.findIndex((s) => s.id === selectedId)
+      : nextIndex >= 0 ? nextIndex : 0,
+  );
+  const selected = subs[selectedIndex] ?? null;
 
   const totalModulos = subs.reduce((a, s) => a + s.total_modulos, 0);
   const levelSteps = LEVEL_STEPS[course.nivel] ?? 0;
-  const linkSub = (s: Subcurso) => (viewOnlyMode ? `/curso/${s.id}?from=global` : `/curso/${s.id}`);
+
+  const seleccionar = (i: number, foco = false) => {
+    const s = subs[i];
+    if (!s) return;
+    onSelect?.(s.id);
+    if (foco) tabsRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[i]?.focus();
+  };
+
+  // Flechas izquierda/derecha entre pestañas (patrón de pestañas accesibles).
+  const onTabsKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault();
+    const last = subs.length - 1;
+    const i = e.key === 'Home' ? 0
+      : e.key === 'End' ? last
+        : e.key === 'ArrowRight' ? Math.min(last, selectedIndex + 1)
+          : Math.max(0, selectedIndex - 1);
+    seleccionar(i, true);
+  };
+
+  const avisarSinAcceso = (s: { inscrito: boolean }) => {
+    const id = Date.now();
+    if (enrolled && !s.inscrito) {
+      setToast({
+        id,
+        title: 'Este curso se agregó después de tu inscripción',
+        message: 'Inscríbete a los cursos nuevos para ver sus lecciones.',
+        ...(puedeSumarNuevos ? { actionLabel: 'Inscribirme', onAction: onInscribirse } : {}),
+      });
+    } else if (puedeInscribirse) {
+      setToast({
+        id,
+        title: 'Inscríbete al proceso para ver esta lección',
+        message: `Te inscribe en los ${plural(subs.length, 'curso', 'cursos')} de ${cleanTitle(course.titulo)}.`,
+        actionLabel: 'Inscribirme',
+        onAction: onInscribirse,
+      });
+    } else {
+      setToast({ id, title: 'Este proceso no está disponible', message: 'Tu organización no lo ha adquirido.' });
+    }
+  };
 
   let actionBody: ReactNode;
   if (viewOnlyMode) {
     actionBody = (
       <p className={styles.nextUp}>
-        Proceso con {plural(subs.length, 'curso', 'cursos')}. Abre cada uno para revisar su contenido.
+        Proceso con {plural(subs.length, 'curso', 'cursos')}. Elige un curso abajo para revisar su contenido.
       </p>
     );
   } else if (enrolled) {
@@ -125,13 +169,13 @@ export default function GlobalCourseContent({
       <>
         <div>
           <div className={styles.progressLabel}>
-            <span>Tu avance</span>
+            <span>Tu avance en el proceso</span>
             <b>{pct} %</b>
           </div>
           <div
             className={styles.track}
             role="progressbar"
-            aria-label="Avance del curso"
+            aria-label="Avance del proceso"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
@@ -149,7 +193,7 @@ export default function GlobalCourseContent({
               <b>{sinPrefijo(next.titulo, course.titulo)}</b>
             </p>
             <Link href={`/curso/${next.id}/videos`} className={`${styles.btn} ${styles.btnPrimary}`}>
-              {started ? 'Continuar' : 'Empezar curso'}
+              {started ? 'Continuar' : 'Empezar'}
               {ArrowIcon}
             </Link>
           </>
@@ -173,7 +217,7 @@ export default function GlobalCourseContent({
         )}
       </>
     );
-  } else if (course.puedeInscribirse !== false && onInscribirse) {
+  } else if (puedeInscribirse) {
     actionBody = (
       <>
         <div className={styles.price}>
@@ -290,70 +334,98 @@ export default function GlobalCourseContent({
             <section className={styles.section} aria-labelledby="subcursos-title">
               <div className={styles.sectionHead}>
                 <h2 id="subcursos-title" className={styles.sectionTitle}>Cursos de {cleanTitle(course.titulo)}</h2>
-                {subs.length > 1 && (
-                  <button type="button" className={styles.linkButton} onClick={toggleAll}>
-                    {allOpen ? 'Contraer todo' : 'Expandir todo'}
-                  </button>
-                )}
+                {subs.length > 1 && <span className={own.stepsHint}>Elige un curso para ver su contenido</span>}
               </div>
               {subs.length === 0 ? (
                 <p className={styles.sectionText}>Los cursos se publicarán pronto.</p>
               ) : (
-                <div className={styles.modules}>
-                  {subs.map((s, i) => {
-                    const isOpen = open.has(i);
-                    const isNext = i === nextIndex;
-                    const titulo = sinPrefijo(s.titulo, course.titulo);
-                    return (
-                      <div key={s.id} className={`${styles.module} ${s.completado ? styles.moduleDone : ''}`}>
+                <>
+                  {/* Selector de cursos del proceso: una ruta de pasos (1 → 2 → 3). */}
+                  <div
+                    ref={tabsRef}
+                    className={own.steps}
+                    role="tablist"
+                    aria-label={`Cursos de ${cleanTitle(course.titulo)}`}
+                    onKeyDown={onTabsKey}
+                  >
+                    {subs.map((s, i) => {
+                      const activo = i === selectedIndex;
+                      const conAvance = s.inscrito && !viewOnlyMode;
+                      const subPct = s.total_lecciones ? Math.round((s.lecciones_completadas / s.total_lecciones) * 100) : 0;
+                      const estado = !conAvance
+                        ? plural(s.total_lecciones, 'lección', 'lecciones')
+                        : s.completado
+                          ? 'Terminado'
+                          : i === nextIndex
+                            ? `Siguiente · ${s.lecciones_completadas}/${s.total_lecciones}`
+                            : `${s.lecciones_completadas}/${s.total_lecciones}`;
+                      return (
                         <button
+                          key={s.id}
                           type="button"
-                          className={styles.moduleButton}
-                          onClick={() => toggle(i)}
-                          aria-expanded={isOpen}
-                          aria-controls={`sub-${i}`}
+                          role="tab"
+                          id={`tab-${s.id}`}
+                          aria-selected={activo}
+                          aria-controls={`panel-${s.id}`}
+                          tabIndex={activo ? 0 : -1}
+                          className={`${own.step} ${activo ? own.stepActive : ''} ${conAvance && s.completado ? own.stepDone : ''} ${conAvance && i === nextIndex ? own.stepNext : ''}`}
+                          onClick={() => seleccionar(i)}
                         >
-                          <span className={styles.moduleNum} aria-hidden="true">{s.completado ? Check : i + 1}</span>
-                          <span className={styles.moduleText}>
-                            <span className={styles.moduleTitle}>{titulo}</span>
-                            <span className={styles.moduleMix}>
-                              {plural(s.total_modulos, 'módulo', 'módulos')} · {plural(s.total_lecciones, 'lección', 'lecciones')}
+                          <span className={own.stepDot} aria-hidden="true">
+                            {conAvance && s.completado ? Check : i + 1}
+                          </span>
+                          <span className={own.stepText}>
+                            <span className={own.stepTitle}>{sinPrefijo(s.titulo, course.titulo)}</span>
+                            <span className={own.stepMeta}>{estado}</span>
+                          </span>
+                          {conAvance && !s.completado && subPct > 0 && (
+                            <span className={own.stepBar} aria-hidden="true">
+                              <span style={{ width: `${subPct}%` }} />
                             </span>
-                          </span>
-                          <span className={`${styles.moduleCount} ${isNext ? own.countNext : ''}`}>
-                            {s.inscrito
-                              ? `${isNext ? 'Siguiente · ' : ''}${s.lecciones_completadas}/${s.total_lecciones}`
-                              : plural(s.total_lecciones, 'lección', 'lecciones')}
-                          </span>
-                          <svg className={styles.moduleChevron} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-                          </svg>
+                          )}
                         </button>
-                        {isOpen && (
-                          <ul id={`sub-${i}`} className={styles.lessons}>
-                            {s.modulos.map((m, k) => (
-                              <li key={k} className={styles.lesson}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden="true"><path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h10" /></svg>
-                                <span className={styles.lessonTitle}>{cleanTitle(m)}</span>
-                                <span className={styles.lessonKind}>Módulo {k + 1}</span>
-                              </li>
-                            ))}
-                            <li className={styles.lesson}>
-                              <span className={own.openIcon}>{ArrowIcon}</span>
-                              <Link href={linkSub(s)} className={own.openLink}>Abrir {titulo}</Link>
-                              <span />
-                            </li>
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+
+                  {selected && (
+                    <div role="tabpanel" id={`panel-${selected.id}`} aria-labelledby={`tab-${selected.id}`}>
+                      <ProcessCoursePanel
+                        key={selected.id}
+                        sub={selected}
+                        titulo={sinPrefijo(selected.titulo, course.titulo)}
+                        index={selectedIndex}
+                        total={subs.length}
+                        viewOnlyMode={viewOnlyMode}
+                        onProgressChange={onProgressChange}
+                        onLockedLesson={avisarSinAcceso}
+                        onLessonOpen={(href) => router.push(href)}
+                      />
+                      {subs.length > 1 && (
+                        <nav className={own.pager} aria-label="Cambiar de curso">
+                          {selectedIndex > 0 ? (
+                            <button type="button" className={own.pagerBtn} onClick={() => { seleccionar(selectedIndex - 1); tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+                              <span className={own.pagerLabel}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" /></svg>Curso anterior</span>
+                              <span className={own.pagerTitle}>{sinPrefijo(subs[selectedIndex - 1].titulo, course.titulo)}</span>
+                            </button>
+                          ) : <span />}
+                          {selectedIndex < subs.length - 1 && (
+                            <button type="button" className={`${own.pagerBtn} ${own.pagerNext}`} onClick={() => { seleccionar(selectedIndex + 1); tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+                              <span className={own.pagerLabel}>Siguiente curso<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg></span>
+                              <span className={own.pagerTitle}>{sinPrefijo(subs[selectedIndex + 1].titulo, course.titulo)}</span>
+                            </button>
+                          )}
+                        </nav>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           </div>
         </div>
       </main>
+      <Toast toast={toast} onClose={closeToast} />
     </div>
   );
 }
