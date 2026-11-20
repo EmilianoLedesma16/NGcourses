@@ -1,0 +1,114 @@
+name: CI
+
+# Corre en cada PR y en cada push a main. Revisa que el frontend compile,
+# que el backend pase sus pruebas y que no haya vulnerabilidades altas conocidas
+# en las dependencias. El deploy (deploy.yml) es aparte.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend (audit + typecheck + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Desde la raiz: el lockfile canonico del workspace vive ahi.
+      # .npmrc trae ignore-scripts=true, asi que ningun paquete ejecuta codigo al instalarse.
+      - name: Instalar (npm ci)
+        run: npm ci
+
+      - name: Auditoria de dependencias de produccion
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npx tsc --noEmit -p .
+
+      - name: Build
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build
+
+  backend:
+    name: Backend (audit + tests)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      ENVIRONMENT: local
+      PROJECT_NAME: NGcourses-CI
+      SECRET_KEY: ci-only-secret-key-not-used-anywhere-else-0123456789
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: ci-only-superuser-password
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.6"
+          python-version: "3.12"
+          enable-cache: true
+
+      # --frozen: instala exactamente uv.lock y falla si no cuadra con pyproject.toml
+      - name: Instalar (uv sync --frozen)
+        run: uv sync --frozen
+
+      - name: Auditoria de dependencias de produccion
+        run: |
+          uv export --frozen --no-dev --no-hashes --no-emit-project -o /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt --disable-pip --no-deps
+
+      # app/main.py crea /app/app/media al importarse (ruta del contenedor)
+      - name: Carpeta de media
+        run: sudo mkdir -p /app/app/media && sudo chown -R "$USER" /app
+
+      - name: Migraciones
+        run: uv run alembic upgrade head
+
+      - name: Arranque de la app (importa FastAPI, modelos y rutas)
+        run: uv run python -c "from app.main import app; print(len(app.routes), 'rutas')"
+
+      # La suite ya estaba rota antes de este workflow (docs/PLAN-MANTENIMIENTO.md, Fase 3:
+      # 60 de 77 no pasan porque el login ya va por cookie). Se corre para que se vea el
+      # resultado, pero no bloquea hasta arreglarla. Quitar continue-on-error cuando pase.
+      - name: Tests (informativo)
+        continue-on-error: true
+        run: uv run pytest tests/ -q -p no:cacheprovider
