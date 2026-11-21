@@ -316,7 +316,8 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
   margin-bottom: 1rem;
 }
 
@@ -809,5 +810,16 @@
   .moduleChevron,
   .btn {
     transition: none;
+  }
+}
+
+/* Móvil: el texto justificado abre huecos enormes entre palabras en columnas de
+   ~330px; se alinea al inicio. */
+@media (max-width: 640px) {
+  .lead,
+  .sectionText,
+  .requirements li,
+  .lockedMessage {
+    text-align: start;
   }
 }
