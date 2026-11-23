@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ⚠️ OBSOLETO — Este script pertenece a la infra vieja del ex-empleado (ECR + EC2 44.250.178.54).
-# El deploy actual es build-en-servidor sin ECR via .github/workflows/deploy.yml (ver docs/DEPLOY.md).
+# El deploy actual es build-en-servidor sin ECR via .github/workflows/deploy.yml (ver docs/09-despliegue-y-operacion/README.md).
 # Se conserva solo como referencia histórica. NO usar.
 #
 # deploy-frontend.sh — Build, push a ECR y deploy al servidor
