@@ -242,6 +242,18 @@
   color: var(--color-text-secondary);
 }
 
+/* Teléfono: «Leer más» y «Expandir todo» con área táctil de 44 px. */
+@media (max-width: 640px) {
+  .moreButton,
+  .linkButton {
+    min-height: 44px;
+  }
+
+  .moreButton {
+    margin-top: 0;
+  }
+}
+
 .moreButton:focus-visible,
 .linkButton:focus-visible {
   outline: 2px solid var(--color-secondary-30);

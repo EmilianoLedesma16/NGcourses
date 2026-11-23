@@ -69,6 +69,7 @@ export default function StudentUserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="true"
+        aria-label={`Menú de ${user.name}`}
       >
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

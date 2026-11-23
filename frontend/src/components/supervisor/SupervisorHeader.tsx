@@ -57,6 +57,7 @@ export const SupervisorHeader: React.FC<SupervisorHeaderProps> = ({
               aria-expanded={showDropdown}
               aria-haspopup="true"
               disabled={!user}
+              aria-label={user ? `Menú de ${user.name}` : 'Menú de usuario'}
             >
               {!user ? (
                 <div className={styles.skeletonAvatar} />

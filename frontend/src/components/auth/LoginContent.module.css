@@ -679,6 +679,52 @@
   }
 }
 
+/* Teléfono: el formulario es lo primero que se ve. El panel de marca se "deshace" para que
+   logo + lema queden arriba y el carrusel de cursos destacados baje después del formulario. */
+@media (max-width: 640px) {
+  .brandPanel {
+    display: contents;
+  }
+
+  .brand,
+  .hero,
+  .featured {
+    background: var(--panel);
+    color: #fff;
+  }
+
+  .brand {
+    order: 0;
+    gap: 12px;
+    padding: 20px 20px 6px;
+  }
+
+  .brandIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .brandName {
+    font-size: 26px;
+  }
+
+  .hero {
+    order: 1;
+    padding: 0 20px 20px;
+  }
+
+  .formPanel {
+    order: 2;
+  }
+
+  .featured {
+    order: 3;
+    overflow: hidden;
+    margin-top: 0;
+    padding: 24px 0 28px;
+  }
+}
+
 @media (max-width: 380px) {
   .labelRow {
     flex-direction: column;
