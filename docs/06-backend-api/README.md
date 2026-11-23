@@ -263,8 +263,8 @@ cursos y resumen por organización. La función pública `resumen_avance` es reu
 
 ### `feature_flags.py`, `utils.py`, `items.py`, `private.py`
 
-- `GET /feature-flags` (cualquier usuario autenticado) y `PATCH /feature-flags/{nombre}` (admin). Hoy la
-  única bandera es `instructores`.
+- `GET /feature-flags` (cualquier usuario autenticado) y `PATCH /feature-flags/{nombre}` (admin). Las banderas usadas por el código son
+  `instructores` y `multiples_supervisores` (capítulo 4).
 - `GET /utils/health-check/` responde `true`; es lo que consulta el `healthcheck` de Docker.
 - `items.py` y `private.py` vienen de la plantilla *full-stack-fastapi-template*; `private` solo se monta
   en local.

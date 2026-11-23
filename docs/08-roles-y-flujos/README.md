@@ -33,6 +33,10 @@ Tabla `feature_flags`, sembrada en `false` por la migración 3. Mientras está a
 
 Se enciende desde `/admin/configuracion` (`PATCH /feature-flags/instructores`).
 
+La otra bandera, `multiples_supervisores`, controla si una organización admite más de un supervisor
+(`admin_org`); apagada, `POST /organizaciones/{id}/supervisor` y la asignación de un segundo `admin_org`
+se rechazan.
+
 ## 8.2 Ciclo de vida de una cuenta
 
 ```

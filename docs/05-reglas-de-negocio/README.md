@@ -19,8 +19,9 @@ rechazar.
 ```
 
 - Las transiciones se hacen con `PATCH /cursos/{id}` (campo `estado`). El backend no impone el orden de los
-  estados; lo impone la interfaz (el instructor solo ve "Enviar a revisión"; el admin ve "Publicar" y
-  "Rechazar"). `notas_revision` (en `metadata`) guarda el motivo de un rechazo.
+  estados; lo impone la interfaz (el instructor solo ve "Enviar a revisión"; el admin ve "Publicar",
+  "Solicitar cambios", que regresa el curso a `borrador` con nota obligatoria, y "Rechazar").
+  `notas_revision` (en `metadata`) guarda el motivo.
 - **Candado de publicación** (`routes/cursos.py::update_curso`): al pasar a `publicado` o `revision`
   responde `409` si
   - el curso es **global** y no tiene al menos un curso hijo publicado, o

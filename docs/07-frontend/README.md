@@ -45,8 +45,9 @@ Next.js (proxy.ts) ──server-to-server──▶ BACKEND_URL/api/v1/auth/sessi
 
 ### `app/media/[...path]/route.ts`
 
-Proxy de solo lectura para portadas, avatares, certificados y recursos que el backend sirve en `/media`
-(`SERVE_MEDIA=true`). Si el backend no responde devuelve 502.
+Proxy de solo lectura para lo que el backend monta como estático en `/media`: **solo** portadas
+(`/media/covers`) y avatares (`/media/avatars`), con `SERVE_MEDIA=true`. Certificados y recursos **no** pasan
+por aquí: se descargan por endpoints autenticados. Si el backend no responde devuelve 502.
 
 ### `lib/api/client.ts` (cliente único de la API)
 
