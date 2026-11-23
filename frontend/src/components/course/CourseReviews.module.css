@@ -228,3 +228,9 @@
   margin-top: 0.0625rem;
   color: var(--color-text-faint);
 }
+
+@media (max-width: 640px) {
+  .itemText {
+    text-align: start;
+  }
+}

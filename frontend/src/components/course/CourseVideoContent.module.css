@@ -403,7 +403,14 @@
   .readingCard { padding: 0 0 1.25rem; }
   .main { padding: 1.25rem 1rem 2.5rem; }
   .headerContent { padding: 0 1rem; }
-  .videoSection { padding: 1rem; }
+  /* La tarjeta del video llega a los bordes de la pantalla: el video gana ~50px de
+     ancho (279 → 328 en un teléfono de 360) y se quita el doble margen. */
+  .videoSection {
+    padding: 1rem;
+    margin-inline: -1rem;
+    border-inline: 0;
+    border-radius: 0;
+  }
   .readingTitle { font-size: 1.25rem; }
 }
 
@@ -533,9 +540,16 @@ a.certBannerBtn {
   text-underline-offset: 3px;
 }
 
+/* Móvil: cada enlace ocupa su propia fila a todo lo ancho. En dos columnas de
+   ~140px el nombre de la lección se partía en tres o cuatro renglones. */
 @media (max-width: 560px) {
   .lessonNav {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .lessonNav .navLink + .navLink {
+    border-top: 1px solid var(--color-border-default);
   }
 
   .navPos {
@@ -544,5 +558,11 @@ a.certBannerBtn {
 
   .navTitle {
     font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .readingBody {
+    text-align: start;
   }
 }
