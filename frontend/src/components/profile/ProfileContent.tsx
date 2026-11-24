@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import type { UserProfile, UserStatistics, CourseInProgress } from '@/types/course';
 import MisCompras from './MisCompras';
 import StudentHeader from '@/components/shared/StudentHeader';
 import BackLink from '@/components/shared/BackLink';
 import styles from './ProfileContent.module.css';
 import AnimalAvatar from '@/components/shared/AnimalAvatar';
+import AvatarViewer from './AvatarViewer';
 
 interface ProfileContentProps {
   profile: UserProfile;
@@ -17,6 +19,7 @@ interface ProfileContentProps {
 }
 
 export default function ProfileContent({ profile, statistics, coursesInProgress, avatarUrl, onEditClick, onAvatarClick }: ProfileContentProps) {
+  const [viendoFoto, setViendoFoto] = useState(false);
   return (
     <div className={styles.container}>
       {/* Misma barra que el resto de las vistas del alumno: logo, Dashboard /
@@ -33,13 +36,32 @@ export default function ProfileContent({ profile, statistics, coursesInProgress,
           <div className={styles.profileHeader}>
             <div className={styles.avatarWrapper}>
               {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt={profile.name} className={styles.avatarImg} />
+                // Tocar la foto la abre en grande (desde ahí también se puede cambiar).
+                <button
+                  type="button"
+                  className={styles.avatarButton}
+                  onClick={() => setViendoFoto(true)}
+                  aria-label="Ver foto de perfil"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={avatarUrl} alt="" className={styles.avatarImg} />
+                </button>
+              ) : onAvatarClick ? (
+                // Sin foto propia no hay nada que ver: tocar el avatar invita a subir una.
+                <button
+                  type="button"
+                  className={`${styles.avatarButton} ${styles.avatar}`}
+                  style={{ overflow: 'hidden', background: 'none', cursor: 'pointer' }}
+                  onClick={onAvatarClick}
+                  aria-label="Subir foto de perfil"
+                >
+                  <AnimalAvatar seed={profile.id || profile.email} />
+                </button>
               ) : (
                 <div className={styles.avatar} style={{ overflow: 'hidden', background: 'none' }}><AnimalAvatar seed={profile.id || profile.email} /></div>
               )}
               {onAvatarClick && (
-                <button className={styles.changeAvatarBtn} onClick={onAvatarClick} title="Cambiar foto de perfil">
+                <button className={styles.changeAvatarBtn} onClick={onAvatarClick} title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
                     <circle cx="12" cy="13" r="4" />
@@ -124,6 +146,15 @@ export default function ProfileContent({ profile, statistics, coursesInProgress,
         </div>
 
         <MisCompras />
+        {avatarUrl && (
+          <AvatarViewer
+            open={viendoFoto}
+            src={avatarUrl}
+            name={profile.name}
+            onClose={() => setViendoFoto(false)}
+            onChange={onAvatarClick}
+          />
+        )}
       </main>
     </div>
   );
