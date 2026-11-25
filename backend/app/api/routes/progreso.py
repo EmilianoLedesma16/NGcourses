@@ -11,7 +11,6 @@ from sqlmodel import SQLModel, select
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
 from app.models.contenido import Leccion, Modulo
-from app.models.inscripcion import ProgresoLeccion
 
 router = APIRouter(prefix="/progreso", tags=["progreso"])
 

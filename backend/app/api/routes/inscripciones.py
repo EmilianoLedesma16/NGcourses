@@ -18,7 +18,6 @@ from app.models._enums import (
     RolUsuario,
     TipoCurso,
 )
-from app.models.inscripcion import Certificado, Inscripcion
 
 router = APIRouter(prefix="/inscripciones", tags=["inscripciones"])
 

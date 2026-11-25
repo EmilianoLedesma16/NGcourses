@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from reportlab.lib.colors import HexColor, white, Color
+from reportlab.lib.colors import HexColor, Color
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas as rl_canvas
