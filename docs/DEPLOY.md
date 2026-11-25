@@ -69,5 +69,4 @@ y re-`up -d --build`.
 - **Temporal**: `Actions → Deploy to EC2 → ··· → Disable workflow`.
 - **Permanente**: borrar `.github/workflows/deploy.yml`.
 
-> Nota: `scripts/deploy-frontend.sh` y el flujo basado en ECR quedaron **obsoletos** (eran de la
-> infra del ex-empleado). No usar.
+> El flujo anterior basado en ECR (`scripts/deploy-frontend.sh`) se eliminó; el único deploy es el workflow.
