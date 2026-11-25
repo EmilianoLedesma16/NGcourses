@@ -200,7 +200,6 @@ export const apiClient = new ApiClient(API_URL);
 // ── APIs tipadas ────────────────────────────────────────────────────────────
 
 export const authApi = {
-  login: (email: string, password: string, remember = false) => apiClient.loginForm(email, password, remember),
   me: () => apiClient.get('/api/v1/users/me'),
 };
 
@@ -236,17 +235,10 @@ export const cursosApi = {
   // Lecciones
   createLeccion: (curso_id: string, modulo_id: string, data: unknown) =>
     apiClient.post(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones`, data),
-  getLeccion: (curso_id: string, modulo_id: string, leccion_id: string) =>
-    apiClient.get(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}`),
   updateLeccion: (curso_id: string, modulo_id: string, leccion_id: string, data: unknown) =>
     apiClient.patch(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}`, data),
   deleteLeccion: (curso_id: string, modulo_id: string, leccion_id: string) =>
     apiClient.delete(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}`),
-  // Recursos
-  listRecursos: (curso_id: string, modulo_id: string, leccion_id: string) =>
-    apiClient.get(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}/recursos`),
-  createRecurso: (curso_id: string, modulo_id: string, leccion_id: string, data: unknown) =>
-    apiClient.post(`/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}/recursos`, data),
   uploadRecurso: async (curso_id: string, modulo_id: string, leccion_id: string, file: File, titulo?: string) => {
     const url = `${API_URL}/api/v1/cursos/${curso_id}/modulos/${modulo_id}/lecciones/${leccion_id}/recursos/upload`;
     const form = new FormData();
@@ -296,17 +288,6 @@ export const inscripcionesApi = {
 export const categoriasApi = {
   list: () => apiClient.get('/api/v1/categorias/'),
   create: (data: unknown) => apiClient.post('/api/v1/categorias/', data),
-  update: (id: string, data: unknown) => apiClient.patch(`/api/v1/categorias/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/api/v1/categorias/${id}`),
-};
-
-export const etiquetasApi = {
-  list: () => apiClient.get('/api/v1/etiquetas/'),
-  create: (data: unknown) => apiClient.post('/api/v1/etiquetas/', data),
-  asignar: (curso_id: string, etiqueta_id: string) =>
-    apiClient.post(`/api/v1/cursos/${curso_id}/etiquetas`, { etiqueta_id }),
-  remover: (curso_id: string, etiqueta_id: string) =>
-    apiClient.delete(`/api/v1/cursos/${curso_id}/etiquetas/${etiqueta_id}`),
 };
 
 export const adminApi = {
@@ -330,10 +311,8 @@ export const usersApi = {
   updateMe: (data: { email?: string; telefono?: string | null; full_name?: string }) => apiClient.patch('/api/v1/users/me', data),
   changePassword: (data: { current_password: string; new_password: string }) =>
     apiClient.patch('/api/v1/users/me/password', data),
-  delete: (id: string) => apiClient.delete(`/api/v1/users/${id}`),
   /** Foto de perfil: se guarda en el servidor y regresa el usuario con avatar_url. */
   uploadAvatar: (file: File) => apiClient.uploadFile('/api/v1/users/me/avatar', file),
-  deleteAvatar: () => apiClient.delete('/api/v1/users/me/avatar'),
 };
 
 export const progresoApi = {
@@ -354,8 +333,6 @@ export const videoApi = {
 export const calificacionesApi = {
   list: (curso_id: string) => apiClient.get(`/api/v1/calificaciones/cursos/${curso_id}`),
   create: (curso_id: string, data: unknown) => apiClient.post(`/api/v1/calificaciones/cursos/${curso_id}`, data),
-  update: (id: string, data: unknown) => apiClient.patch(`/api/v1/calificaciones/${id}`, data),
-  votar: (id: string, voto: number) => apiClient.post(`/api/v1/calificaciones/${id}/votar`, { voto }),
 };
 
 export interface ComentarioAutor {
@@ -437,13 +414,10 @@ export const pagosApi = {
     count: number;
   }>,
   /** Admin: desbloqueo manual sin pago (cortesia). */
-  cortesia: (usuario_id: string, curso_id: string) =>
-    apiClient.post('/api/v1/pagos/admin/cortesia', { usuario_id, curso_id }),
 };
 
 export const certificadosApi = {
   mis: () => apiClient.get('/api/v1/certificados/me'),
-  verificar: (folio: string) => apiClient.get(`/api/v1/certificados/verificar/${folio}`),
   descargar: async (folio: string): Promise<void> => {
     const url = `${API_URL}/api/v1/certificados/descargar/${folio}`;
     const response = await fetchConRefresh(url);
@@ -546,10 +520,6 @@ export const featureFlagsApi = {
 
 export const quizApi = {
   /** Revisión/lectura: obtiene la configuración del quiz de una lección cuando el curso no la trae embebida. */
-  detalleLeccion: (leccion_id: string) =>
-    apiClient.get(`/api/v1/quiz/lecciones/${leccion_id}`),
-  preguntasLeccion: (leccion_id: string) =>
-    apiClient.get(`/api/v1/quiz/lecciones/${leccion_id}/preguntas`),
   /** El alumno envía sus respuestas y obtiene resultado inmediato. */
   enviar: (leccion_id: string, data: { inscripcion_id: string; respuestas: { pregunta_id: string; opcion_id: string }[] }) =>
     apiClient.post(`/api/v1/quiz/lecciones/${leccion_id}/enviar`, data),
