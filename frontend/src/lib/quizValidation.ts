@@ -4,8 +4,8 @@ import type { QuizData, QuizQuestion } from '@/types/course';
  * Valida una sola pregunta de quiz. Devuelve la lista de problemas encontrados;
  * un arreglo vacío significa que la pregunta está completa.
  *
- * El backend califica `aprobado = TODAS las preguntas correctas`, así que una
- * pregunta sin respuesta correcta marcada vuelve el quiz imposible de aprobar.
+ * El backend aprueba con ≥60 % de aciertos (`UMBRAL_APROBACION_QUIZ`). Una pregunta
+ * sin respuesta correcta marcada nunca se puede acertar y le quita puntos al alumno.
  */
 export function validateQuestion(q: QuizQuestion): string[] {
   const issues: string[] = [];
