@@ -45,8 +45,6 @@ export default function MyCoursesContent({ courses }: MyCoursesContentProps) {
   const visible = courses
     .filter((c) => activeFilter === 'all' || c.status === activeFilter)
     .sort((a, b) => (b.lastActivity ?? '').localeCompare(a.lastActivity ?? ''));
-  // Solo el curso más reciente lleva el botón verde: una lista de botones verdes no jerarquiza nada.
-  const primaryId = visible.find((c) => c.status === 'in_progress')?.id;
 
   return (
     <div className={styles.container}>
@@ -151,7 +149,7 @@ export default function MyCoursesContent({ courses }: MyCoursesContentProps) {
                     ) : (
                       <Link
                         href={`/curso/${course.id}/videos`}
-                        className={`${styles.btn} ${course.id === primaryId ? styles.btnPrimary : styles.btnGhost}`}
+                        className={`${styles.btn} ${styles.btnGhost}`}
                       >
                         {course.status === 'in_progress' ? 'Continuar' : 'Empezar'}
                         <ArrowIcon />
