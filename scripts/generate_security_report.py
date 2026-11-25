@@ -1,5 +1,5 @@
 """
-Genera docs/reporte_seguridad.pdf — resumen ejecutivo de todos los fixes
+Genera docs/historico/reporte_seguridad.pdf — resumen ejecutivo de todos los fixes
 de ciberseguridad aplicados al proyecto NGcourses.
 """
 
@@ -673,5 +673,5 @@ def build_pdf(path):
 
 if __name__ == "__main__":
     import os
-    out = os.path.join(os.path.dirname(__file__), "..", "docs", "reporte_seguridad.pdf")
+    out = os.path.join(os.path.dirname(__file__), "..", "docs", "historico", "reporte_seguridad.pdf")
     build_pdf(os.path.abspath(out))

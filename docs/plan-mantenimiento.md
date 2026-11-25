@@ -1,6 +1,6 @@
 # Plan de mantenimiento — NextGen Course (post-producción)
 
-> Creado el 2026-11-20. Junta lo que ya estaba identificado (`docs/PENDIENTES-TECNICOS.md`,
+> Creado el 2026-11-20. Junta lo que ya estaba identificado (`docs/pendientes-tecnicos.md`,
 > auditoría del 2026-11-19 en `ncourses.md`) con lo nuevo: dependencias de npm y manejo de versiones.
 > Cada bloque está pensado como una tarea de 0.5 a 2 días. Marca `[x]` al terminar.
 
@@ -120,7 +120,7 @@ Hoy cualquier push a `main` despliega directo, sin pruebas.
 
 ## Fase 5 — Pendientes funcionales ya identificados
 
-Detalle en `docs/PENDIENTES-TECNICOS.md`.
+Detalle en `docs/pendientes-tecnicos.md`.
 - [ ] Reenviar activación a cuentas pendientes con token en claro (operativo, #3).
 - [ ] Datos legales: razón social y correo de contacto reales (#7).
 - [ ] Configurar PayPal en prod (`NEXT_PUBLIC_PAYPAL_CLIENT_ID`) o dejar documentado que el pago en línea queda apagado.

@@ -88,9 +88,9 @@ resto se puede borrar.
 ### 11. Documentación desactualizada
 Mencionan endpoints/pantallas que ya no existen (`POST /users/empresa`, `POST /users/signup`,
 `/admin/usuarios/crear` "Alta empresa"):
-- `ROLES.md` líneas ~98 y ~106
+- ~~`docs/roles-y-permisos.md`~~ corregido en la limpieza del 2026-11-25
 - `DOCUMENTACION.html` línea ~470
-- `PRE-DEPLOY.md` / `PRE-DEPLOY.html` (diagrama con `/users/signup`)
+- `docs/historico/pre-deploy.md` (diagrama con `/users/signup`)
 - `scripts/generate_security_report.py` (texto del reporte)
 
 ### 12. Ruido en logs: `passlib` no lee la versión de `bcrypt`

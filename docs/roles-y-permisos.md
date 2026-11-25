@@ -95,15 +95,16 @@ Relaciones: `cursos_instructor` (cursos que imparte), `inscripciones`, `califica
 **A nivel interfaz (`frontend/src/app/admin/`):**
 - `/admin` — dashboard.
 - `/admin/usuarios` — listar/crear/editar usuarios; **dar de baja/reactivar** (toggle `estado`); reenviar activación; cancelar invitación (borrar usuario pendiente).
-- `/admin/usuarios/crear` — "Alta empresa" (`POST /users/empresa`): crea cuenta pendiente + correo de activación.
+- `/admin/usuarios/[id]/editar` — edición de un usuario (datos, rol, estado).
 - `/admin/alumnos`, `/admin/instructores` — vistas segmentadas por rol.
 - `/admin/cursos` y `/admin/cursos/[id]/invitaciones` — gestión de cursos e invitaciones a alumnos por curso.
 - `/admin/organizaciones` — crear/gestionar organizaciones y su supervisor (admin_org).
-- `/admin/solicitudes` — revisar/aprobar/rechazar solicitudes de curso de las organizaciones.
+- `/admin/solicitudes` — revisión de cursos que un instructor mandó a `revision`: publicar, regresar a borrador con nota o rechazar.
+- `/admin/solicitudes-empresas` — solicitudes de curso que mandan los supervisores de las organizaciones.
 - `/admin/perfil`.
 
 **A nivel técnico (endpoints, guardia `AdminOrSuperuser` salvo nota):**
-- `users.py`: `POST /users/` (crea pendiente+activación), `POST /users/empresa`, `PATCH /users/{id}`, `DELETE /users/{id}`, `GET /users/` (listado/filtros), `POST /users/{id}/reenviar-activacion`.
+- `users.py`: `POST /users/` (crea pendiente+activación), `PATCH /users/{id}`, `DELETE /users/{id}`, `GET /users/` (listado/filtros), `POST /users/{id}/reenviar-activacion`.
 - `cursos.py`: alta/edición/publicación de cursos; invitaciones por curso (`/cursos/{id}/invitaciones`, **solo admin/superuser**).
 - `invitaciones.py`: `POST /invitaciones/` (enviar), listar, reenviar, revocar.
 - `organizaciones.py`: CRUD de organizaciones; crear supervisor (rol `supervisor` + `admin_org`).
