@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from app import crud
-from app.api.deps import AdminOrSuperuser, CurrentUser, SessionDep, require_admin_or_superuser
+from app.api.deps import CurrentUser, SessionDep, require_admin_or_superuser
 from app.models.contenido import CategoriaCreate, CategoriaPublic, CategoriaUpdate
 from app.models.schemas import Message
 

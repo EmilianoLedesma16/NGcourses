@@ -49,9 +49,9 @@ def _pregunta_quiz_valida(pregunta: dict) -> bool:
 
     Mismo criterio que la validación del editor (`frontend/.../quizValidation.ts`):
     debe tener enunciado, una opción marcada como correcta y —para opción
-    múltiple— al menos dos opciones con texto (la correcta incluida). El backend
-    califica `aprobado = TODAS correctas`, así que una pregunta sin respuesta
-    correcta volvería el quiz imposible de aprobar.
+    múltiple— al menos dos opciones con texto (la correcta incluida). Una
+    pregunta sin respuesta correcta nunca se puede acertar y le quita puntos al
+    alumno contra el umbral de aprobación (≥60 %, `crud.UMBRAL_APROBACION_QUIZ`).
     """
     if not (pregunta.get("enunciado") or "").strip():
         return False

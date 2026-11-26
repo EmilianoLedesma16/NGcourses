@@ -75,7 +75,7 @@ def enviar_quiz(
     """
     El alumno envía sus respuestas para un quiz.
     - Verifica que la lección sea tipo 'quiz' y tenga preguntas.
-    - Califica: aprobado = TODAS las preguntas correctas.
+    - Califica: aprobado = aciertos ≥60 % del total (crud.UMBRAL_APROBACION_QUIZ).
     - Si aprobado: registra progreso 100% → puede generar certificado.
     - Retorna resultado con qué preguntas acertó/falló (sin revelar correctas).
     """

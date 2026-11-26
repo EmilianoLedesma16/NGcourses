@@ -106,7 +106,7 @@ jobs:
       - name: Arranque de la app (importa FastAPI, modelos y rutas)
         run: uv run python -c "from app.main import app; print(len(app.routes), 'rutas')"
 
-      # La suite ya estaba rota antes de este workflow (docs/PLAN-MANTENIMIENTO.md, Fase 3:
+      # La suite ya estaba rota antes de este workflow (docs/plan-mantenimiento.md, Fase 3:
       # 60 de 77 no pasan porque el login ya va por cookie). Se corre para que se vea el
       # resultado, pero no bloquea hasta arreglarla. Quitar continue-on-error cuando pase.
       - name: Tests (informativo)

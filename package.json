@@ -14,8 +14,7 @@
     "start": "npm run start --workspace=frontend",
     "start:frontend": "npm run start --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",
-    "lint:frontend": "npm run lint --workspace=frontend",
-    "generate-client": "bash scripts/generate-client.sh"
+    "lint:frontend": "npm run lint --workspace=frontend"
   },
   "overrides": {
     "brace-expansion@1": "^1.1.22",
