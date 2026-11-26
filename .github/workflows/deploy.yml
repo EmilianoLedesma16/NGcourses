@@ -32,7 +32,7 @@ jobs:
       EC2_HOST: ${{ secrets.EC2_HOST }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure SSH
         run: |
