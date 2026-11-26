@@ -33,14 +33,24 @@ async function handler(
 
   // No seguir redirects automáticamente — el backend redirige POST con 307
   // y Node.js pierde el body al seguirlo. Lo manejamos manualmente.
-  let response = await fetch(targetUrl, {
+  const init: RequestInit = {
     method: req.method,
     headers,
     body,
     redirect: 'manual',
     // Desactivar caché de Next.js para que los headers de respuesta sean frescos.
     cache: 'no-store',
-  });
+  };
+  let response: Response;
+  try {
+    response = await fetch(targetUrl, init);
+  } catch (err) {
+    // Node reutiliza conexiones con el backend; si uvicorn ya cerró la suya, fetch falla con
+    // ECONNRESET / UND_ERR_SOCKET sin que el backend haya recibido nada. Una lectura (GET/HEAD)
+    // se reintenta una vez; una escritura no, para no duplicarla.
+    if (hasBody) throw err;
+    response = await fetch(targetUrl, init);
+  }
 
   // Seguir 307/308 manualmente reinyectando el body
   if ((response.status === 307 || response.status === 308) && response.headers.get('location')) {

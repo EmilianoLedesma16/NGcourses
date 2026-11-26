@@ -34,7 +34,8 @@
   object-fit: cover;
 }
 
-.thumb.tile svg {
+/* Solo el icono del recuadro; antes también agrandaba la palomita de esquina. */
+.thumb.tile > svg {
   width: 1rem;
   height: 1rem;
 }

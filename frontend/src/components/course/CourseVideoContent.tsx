@@ -9,6 +9,7 @@ import VideoControls from '@/components/course/VideoControls';
 import QuizPlayer from '@/components/course/QuizPlayer';
 import LessonComments from '@/components/course/LessonComments';
 import UpNextCard from '@/components/course/UpNextCard';
+import BrandLoader from '@/components/shared/BrandLoader';
 import type { Course, Lesson } from '@/types/course';
 import { progresoApi, certificadosApi } from '@/lib/api/client';
 import { normalizeQuizData } from '@/lib/quizData';
@@ -55,6 +56,9 @@ type Destino =
   | { tipo: 'curso'; id: string; titulo: string };
 
 const CUENTA_SEG = 5;
+/** Tiempo que la capa con el logo cubre el cambio de lección, y su desvanecido. */
+const TRANSICION_MS = 650;
+const TRANSICION_SALIDA_MS = 220;
 
 const sinPrefijo = (titulo: string, padre: string) => {
   const t = titulo.trim().replace(/\.$/, '');
@@ -125,7 +129,9 @@ export default function CourseVideoContent({
   const [cuenta, setCuenta] = useState<{ destino: Destino; restante: number } | null>(null);
   // Al llegar por la cuenta atrás o por "Siguiente", el video arranca solo.
   const [autoReproducir, setAutoReproducir] = useState(false);
-  const videoSectionRef = useRef<HTMLDivElement>(null);
+  // Cambio de lección: capa con el logo mientras la página sube y entra lo nuevo.
+  const [transicion, setTransicion] = useState<{ titulo: string; saliendo: boolean } | null>(null);
+  const transicionTimers = useRef<number[]>([]);
   // El curso se completó con el umbral (a mitad del último video): el aviso de
   // "¡Felicidades!" espera a que el video termine para no interrumpirlo.
   const modalPendiente = useRef(false);
@@ -173,15 +179,28 @@ export default function CourseVideoContent({
       }
     : undefined;
 
+  useEffect(() => () => transicionTimers.current.forEach((t) => window.clearTimeout(t)), []);
+
   const irALeccion = (lesson: Lesson, { auto = false } = {}) => {
     setCuenta(null);
+    if (lesson.id === currentLessonId) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setAutoReproducir(auto);
     setCurrentLessonId(lesson.id);
     lastSentTime.current = 0;
     videoDuration.current = 0;
-    // Que el reproductor quede a la vista al cambiar de lección.
-    const el = videoSectionRef.current;
-    if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // La página vuelve arriba de golpe detrás de la capa: el alumno ve la lección
+    // nueva desde el inicio, como recién cargada. Un scroll suave aquí se cortaba
+    // en iPhone al reemplazarse el reproductor a mitad del desplazamiento.
+    transicionTimers.current.forEach((t) => window.clearTimeout(t));
+    setTransicion({ titulo: lesson.name, saliendo: false });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    transicionTimers.current = [
+      window.setTimeout(() => setTransicion((t) => (t ? { ...t, saliendo: true } : t)), TRANSICION_MS),
+      window.setTimeout(() => setTransicion(null), TRANSICION_MS + TRANSICION_SALIDA_MS),
+    ];
   };
 
   const handleLessonSelect = (lesson: Lesson) => irALeccion(lesson);
@@ -452,7 +471,7 @@ export default function CourseVideoContent({
             storageKey={`aula-modulos-${course.id}`}
           />
 
-          <div className={styles.videoSection} ref={videoSectionRef}>
+          <div className={styles.videoSection}>
             {currentLesson.tipo === 'quiz' ? (
               <QuizPlayer
                 key={currentLesson.id}
@@ -479,6 +498,7 @@ export default function CourseVideoContent({
                 {currentLesson.tipo !== 'lectura' && (
                   <VideoPlayer
                     key={currentLesson.id}
+                    className={styles.playerAttached}
                     config={bunnyConfig}
                     videoUrl={currentLesson.videoUrl}
                     autoPlay={autoReproducir}
@@ -492,52 +512,74 @@ export default function CourseVideoContent({
               </>
             )}
 
-            {/* Anterior / siguiente: con el nombre real de la lección (y el
-                siguiente curso del proceso al final), no botones genéricos. */}
-            <nav className={styles.lessonNav} aria-label="Moverse entre lecciones">
+            {/* Anterior / siguiente como barra de controles del reproductor:
+                Bunny no permite botones propios dentro de su iframe, así que la
+                barra va pegada debajo del video, con su mismo fondo. Anterior a
+                la izquierda, siguiente a la derecha. En lectura y cuestionario
+                es la misma barra en los colores del tema. */}
+            <nav
+              className={[
+                styles.lessonNav,
+                currentLesson.tipo === 'lectura' || currentLesson.tipo === 'quiz' ? styles.lessonNavPlain : styles.lessonNavPlayer,
+                !anterior && styles.navSinAnterior,
+                !siguiente && !siguienteCurso && styles.navSinSiguiente,
+              ].filter(Boolean).join(' ')}
+              aria-label="Moverse entre lecciones"
+            >
               {anterior ? (
-                <button type="button" className={styles.navLink} onClick={() => irALeccion(anterior)}>
-                  <span className={styles.navLabel}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" /></svg>
-                    Anterior
+                <button type="button" className={`${styles.navLink} ${styles.navPrev}`} onClick={() => irALeccion(anterior)}>
+                  <span className={styles.navPrevArrow} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" /></svg>
                   </span>
-                  <span className={styles.navTitle}>
-                    <TipoIcon tipo={anterior.tipo} />
-                    {anterior.name}
+                  <span className={styles.navText}>
+                    <span className={styles.navLabel}>Anterior</span>
+                    <span className={styles.navTitle}>
+                      <TipoIcon tipo={anterior.tipo} />
+                      <span className={styles.navTitleText}>{anterior.name}</span>
+                    </span>
                   </span>
                 </button>
-              ) : (
-                <span />
-              )}
+              ) : null}
               <span className={styles.navPos} aria-label={`Lección ${idxActual + 1} de ${lecciones.length}`}>
                 {idxActual + 1}<span aria-hidden="true"> / </span>{lecciones.length}
               </span>
               {siguiente ? (
                 <button
                   type="button"
-                  className={`${styles.navLink} ${styles.navNext}`}
+                  className={`${styles.navLink} ${styles.navNext} ${currentLesson.completed ? styles.navReady : ''}`}
                   onClick={() => irALeccion(siguiente, { auto: true })}
                 >
-                  <span className={styles.navLabel}>
-                    {siguiente.moduleId !== currentLesson.moduleId ? 'Siguiente módulo' : 'Siguiente'}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg>
+                  <span className={styles.navText}>
+                    <span className={styles.navLabel}>
+                      {siguiente.moduleId !== currentLesson.moduleId ? 'Siguiente módulo' : 'Siguiente'}
+                    </span>
+                    <span className={styles.navTitle}>
+                      <TipoIcon tipo={siguiente.tipo} />
+                      <span className={styles.navTitleText}>{siguiente.name}</span>
+                    </span>
                   </span>
-                  <span className={styles.navTitle}>
-                    <TipoIcon tipo={siguiente.tipo} />
-                    {siguiente.name}
+                  <span className={styles.navArrow} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg>
                   </span>
                 </button>
               ) : siguienteCurso ? (
-                <Link href={`/curso/${siguienteCurso.id}/videos`} className={`${styles.navLink} ${styles.navNext}`}>
-                  <span className={styles.navLabel}>
-                    Siguiente curso · {proceso?.titulo} {(proceso?.posicion ?? 0) + 1}/{proceso?.total}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg>
+                <Link
+                  href={`/curso/${siguienteCurso.id}/videos`}
+                  className={`${styles.navLink} ${styles.navNext} ${cursoCompleto ? styles.navReady : ''}`}
+                >
+                  <span className={styles.navText}>
+                    <span className={styles.navLabel}>
+                      Siguiente curso · {(proceso?.posicion ?? 0) + 1} de {proceso?.total}
+                    </span>
+                    <span className={styles.navTitle}>
+                      <span className={styles.navTitleText}>{siguienteCurso.titulo}</span>
+                    </span>
                   </span>
-                  <span className={styles.navTitle}>{siguienteCurso.titulo}</span>
+                  <span className={styles.navArrow} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" /></svg>
+                  </span>
                 </Link>
-              ) : (
-                <span />
-              )}
+              ) : null}
             </nav>
 
             {currentLesson.tipo !== 'quiz' && (
@@ -556,12 +598,29 @@ export default function CourseVideoContent({
                   downloading={downloading}
                   readOnlyMode={readOnlyMode}
                 />
-                <LessonComments key={`comentarios-${currentLesson.id}`} lessonId={currentLesson.id} />
               </>
             )}
           </div>
+
+          {/* Comentarios en su propia tarjeta: en computadora debajo de la
+              lección (columna derecha); en celular y tableta al final, después
+              de «Contenido del curso». */}
+          {currentLesson.tipo !== 'quiz' && (
+            <section className={styles.commentsSection} aria-label="Comentarios de la lección">
+              <LessonComments key={`comentarios-${currentLesson.id}`} lessonId={currentLesson.id} />
+            </section>
+          )}
         </div>
       </div>
+
+      {transicion && (
+        <div
+          className={`${styles.lessonTransition} ${transicion.saliendo ? styles.lessonTransitionOut : ''}`}
+          aria-hidden={transicion.saliendo}
+        >
+          <BrandLoader label={transicion.titulo} fullScreen={false} />
+        </div>
+      )}
 
       {cuenta && (
         <UpNextCard

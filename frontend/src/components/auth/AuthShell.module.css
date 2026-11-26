@@ -148,8 +148,14 @@
 }
 
 .toggle {
-  display: flex;
+  /* Área táctil de 44 × 44 px; los márgenes negativos la devuelven a los 18 px del ícono
+     para no agrandar el campo. */
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  margin: -13px -13px -13px 0;
   padding: 0;
   border: none;
   background: none;

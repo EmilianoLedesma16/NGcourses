@@ -5,6 +5,7 @@
   margin: 0;
   text-align: justify;
   hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
 }
 
 .tabs {
@@ -247,10 +248,6 @@
 
   .tabs::-webkit-scrollbar {
     display: none;
-  }
-
-  .summaryText {
-    text-align: start;
   }
 
   .tab {

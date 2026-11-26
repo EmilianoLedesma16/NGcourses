@@ -58,7 +58,9 @@ export default function LessonThumb({ src, icon, framed, done, active, durationS
       {hasImage && !done && durationSec ? (
         <span className={styles.duration}>{formatDuration(durationSec)}</span>
       ) : null}
-      {done && (
+      {/* La palomita de esquina solo va sobre la imagen. Sin imagen (no hay o no
+          cargó) el recuadro ya muestra la palomita al centro: no se duplica. */}
+      {done && hasImage && (
         <span className={styles.done}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />

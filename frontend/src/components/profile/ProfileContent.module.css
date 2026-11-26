@@ -83,6 +83,40 @@
   box-shadow: 0 0 0 1px var(--color-border-default);
 }
 
+/* La foto es tocable: se agranda un poco al pasar el cursor y se hunde al tocar. */
+.avatarButton {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.avatarButton:hover {
+  transform: scale(1.04);
+}
+
+.avatarButton:active {
+  transform: scale(0.97);
+}
+
+.avatarButton:focus-visible {
+  outline: 2px solid var(--color-secondary-30);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatarButton,
+  .avatarButton:hover,
+  .avatarButton:active {
+    transition: none;
+    transform: none;
+  }
+}
+
 .changeAvatarBtn {
   position: absolute;
   right: -2px;

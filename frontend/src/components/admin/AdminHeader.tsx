@@ -66,6 +66,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             aria-expanded={showDropdown}
             aria-haspopup="true"
             disabled={!user}
+            aria-label={user ? `Menú de ${user.name}` : 'Menú de usuario'}
           >
             {!user ? (
               <div className={styles.skeletonAvatar} />

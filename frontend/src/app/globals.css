@@ -245,3 +245,13 @@ body {
   padding: 0 0.75rem;
   font-size: 0.8125rem;
 }
+
+/* Teléfono: iOS Safari hace zoom al enfocar un campo con letra menor a 16 px y no lo
+   deshace. El selector de atributo le gana a la clase de cada módulo (.input, .formInput…). */
+@media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

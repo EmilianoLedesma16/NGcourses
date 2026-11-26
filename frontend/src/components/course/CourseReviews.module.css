@@ -196,6 +196,7 @@
   max-width: 70ch;
   text-align: justify;
   hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
 }
 
 .srOnly {
@@ -227,10 +228,4 @@
   height: 1.125rem;
   margin-top: 0.0625rem;
   color: var(--color-text-faint);
-}
-
-@media (max-width: 640px) {
-  .itemText {
-    text-align: start;
-  }
 }

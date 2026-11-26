@@ -74,6 +74,17 @@ export default function PerfilPage() {
   const [avatarError, setAvatarError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Al abrir, el foco pasa al diálogo (sin abrir el teclado del teléfono); Escape lo cierra.
+  useEffect(() => {
+    if (!editOpen) return;
+    dialogRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setEditOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editOpen]);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -248,16 +259,26 @@ export default function PerfilPage() {
 
       {editOpen && (
         <div className={styles.modalOverlay} onClick={() => setEditOpen(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="perfil-editar-titulo"
+            ref={dialogRef}
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Editar perfil</h2>
-              <button className={styles.modalClose} onClick={() => setEditOpen(false)}>✕</button>
+              <h2 id="perfil-editar-titulo" className={styles.modalTitle}>Editar perfil</h2>
+              <button type="button" className={styles.modalClose} onClick={() => setEditOpen(false)} aria-label="Cerrar">✕</button>
             </div>
 
             <form onSubmit={handleSaveEdit} className={styles.editForm}>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Nombre completo</label>
+                <label htmlFor="perfil-nombre" className={styles.formLabel}>Nombre completo</label>
                 <input maxLength={255}
+                  id="perfil-nombre"
+                  autoComplete="name"
                   type="text"
                   className={styles.formInput}
                   value={editForm.full_name}
@@ -269,8 +290,9 @@ export default function PerfilPage() {
                 </small>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Correo electrónico</label>
+                <label htmlFor="perfil-correo" className={styles.formLabel}>Correo electrónico</label>
                 <input
+                  id="perfil-correo"
                   type="email"
                   className={styles.formInput}
                   value={editForm.email}
@@ -282,8 +304,9 @@ export default function PerfilPage() {
                 </small>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Teléfono</label>
+                <label htmlFor="perfil-telefono" className={styles.formLabel}>Teléfono</label>
                 <input
+                  id="perfil-telefono"
                   {...PHONE_INPUT_PROPS}
                   className={styles.formInput}
                   value={editForm.telefono}
@@ -306,18 +329,18 @@ export default function PerfilPage() {
             <div className={styles.pwdSection}>
               <h3 className={styles.pwdTitle}>Cambiar contraseña</h3>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Contraseña actual</label>
-                <input type="password" className={styles.formInput} value={pwdForm.current}
+                <label htmlFor="perfil-pwd-actual" className={styles.formLabel}>Contraseña actual</label>
+                <input id="perfil-pwd-actual" type="password" autoComplete="current-password" className={styles.formInput} value={pwdForm.current}
                   onChange={(e) => setPwdForm((f) => ({ ...f, current: e.target.value }))} />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Nueva contraseña</label>
-                <input type="password" className={styles.formInput} value={pwdForm.nueva}
+                <label htmlFor="perfil-pwd-nueva" className={styles.formLabel}>Nueva contraseña</label>
+                <input id="perfil-pwd-nueva" type="password" autoComplete="new-password" className={styles.formInput} value={pwdForm.nueva}
                   onChange={(e) => setPwdForm((f) => ({ ...f, nueva: e.target.value }))} />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Confirmar nueva contraseña</label>
-                <input type="password" className={styles.formInput} value={pwdForm.confirmar}
+                <label htmlFor="perfil-pwd-confirmar" className={styles.formLabel}>Confirmar nueva contraseña</label>
+                <input id="perfil-pwd-confirmar" type="password" autoComplete="new-password" className={styles.formInput} value={pwdForm.confirmar}
                   onChange={(e) => setPwdForm((f) => ({ ...f, confirmar: e.target.value }))} />
               </div>
               {pwdError && <p className={styles.formError}>{pwdError}</p>}
